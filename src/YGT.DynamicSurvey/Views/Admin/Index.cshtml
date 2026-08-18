@@ -1,0 +1,363 @@
+@model YGT.DynamicSurvey.Models.ViewModels.Admin.AdminDashboardViewModel
+
+@{
+    ViewData["Title"] = "Yönetim Paneli";
+}
+
+<div class="admin-panel-page">
+
+    <!-- =====================================================
+         BAŞLIK
+    ====================================================== -->
+
+    <div class="admin-panel-header">
+
+        <div>
+            <span class="dashboard-eyebrow">
+                YÖNETİM PANELİ
+            </span>
+
+            <h1>
+                Hoş geldin, @Model.FullName 👋
+            </h1>
+
+            <p>
+                Anketleri, kullanıcıları ve sistem işlemlerini buradan yönetebilirsin.
+            </p>
+        </div>
+
+        <a asp-controller="Survey"
+           asp-action="Create"
+           class="admin-create-survey-button">
+
+            <span>＋</span>
+            Yeni Anket Oluştur
+
+        </a>
+
+    </div>
+
+
+    @if (TempData["AdminSuccess"] is not null)
+    {
+        <div class="alert alert-success">
+            @TempData["AdminSuccess"]
+        </div>
+    }
+
+    @if (TempData["AdminError"] is not null)
+    {
+        <div class="alert alert-danger">
+            @TempData["AdminError"]
+        </div>
+    }
+
+
+    <!-- =====================================================
+         İSTATİSTİKLER
+    ====================================================== -->
+
+    <div class="admin-summary-grid">
+
+        <a asp-controller="Admin"
+           asp-action="Users"
+           class="admin-summary-card admin-summary-link">
+
+            <div class="admin-summary-icon">
+                👥
+            </div>
+
+            <div>
+                <span>Toplam Kullanıcı</span>
+                <strong>@Model.TotalUsers</strong>
+                <small>Kullanıcıları görüntüle →</small>
+            </div>
+
+        </a>
+
+
+        <a asp-controller="Survey"
+           asp-action="Index"
+           class="admin-summary-card admin-summary-link">
+
+            <div class="admin-summary-icon">
+                📋
+            </div>
+
+            <div>
+                <span>Toplam Anket</span>
+                <strong>@Model.TotalSurveys</strong>
+                <small>Anketleri yönet →</small>
+            </div>
+
+        </a>
+
+
+        <a asp-controller="Survey"
+           asp-action="Index"
+           class="admin-summary-card admin-summary-link">
+
+            <div class="admin-summary-icon">
+                🟢
+            </div>
+
+            <div>
+                <span>Aktif Anket</span>
+                <strong>@Model.ActiveSurveys</strong>
+                <small>Aktif anketleri gör →</small>
+            </div>
+
+        </a>
+
+
+        <a asp-controller="Survey"
+           asp-action="Index"
+           class="admin-summary-card admin-summary-link">
+
+            <div class="admin-summary-icon">
+                📊
+            </div>
+
+            <div>
+                <span>Toplam Yanıt</span>
+                <strong>@Model.TotalResponses</strong>
+                <small>Sonuçları incele →</small>
+            </div>
+
+        </a>
+
+    </div>
+
+
+    <!-- =====================================================
+         YÖNETİCİ BAŞVURULARI
+    ====================================================== -->
+
+    @if (Model.IsSuperAdmin)
+    {
+        <div class="admin-panel-section admin-dashboard-section">
+
+            <div class="admin-panel-section-header">
+
+                <div>
+                    <h2>Yönetici Başvuruları</h2>
+
+                    <p>
+                        Yönetici yetkisi isteyen kullanıcıları değerlendir.
+                    </p>
+                </div>
+
+                @if (Model.PendingAdminRequests.Count > 0)
+                {
+                    <span class="admin-pending-count">
+                        @Model.PendingAdminRequests.Count bekliyor
+                    </span>
+                }
+
+            </div>
+
+
+            @if (Model.PendingAdminRequests.Count == 0)
+            {
+                <div class="admin-dashboard-empty">
+
+                    <div>✓</div>
+
+                    <strong>
+                        Bekleyen başvuru yok
+                    </strong>
+
+                    <span>
+                        Şu anda değerlendirilmesi gereken yönetici başvurusu bulunmuyor.
+                    </span>
+
+                </div>
+            }
+            else
+            {
+                <div class="admin-request-list">
+
+                    @foreach (var request in Model.PendingAdminRequests)
+                    {
+                        <div class="admin-request-row">
+
+                            <div class="admin-request-user">
+
+                                <div class="admin-request-avatar">
+                                    👤
+                                </div>
+
+                                <div>
+
+                                    <strong>
+                                        @request.FullName
+                                    </strong>
+
+                                    <span>
+                                        @request.Email
+                                    </span>
+
+                                    @if (request.AdminRequestedAt.HasValue)
+                                    {
+                                        <small>
+                                            Başvuru:
+                                            @(request.AdminRequestedAt.Value
+                                                .ToLocalTime()
+                                                .ToString("dd.MM.yyyy HH:mm"))
+                                        </small>
+                                    }
+
+                                </div>
+
+                            </div>
+
+
+                            <div class="admin-request-actions">
+
+                                <form asp-controller="Admin"
+                                      asp-action="ApproveAdmin"
+                                      method="post">
+
+                                    @Html.AntiForgeryToken()
+
+                                    <input type="hidden"
+                                           name="id"
+                                           value="@request.Id" />
+
+                                    <button type="submit"
+                                            class="admin-approve-button">
+
+                                        ✓ Onayla
+
+                                    </button>
+
+                                </form>
+
+
+                                <form asp-controller="Admin"
+                                      asp-action="RejectAdmin"
+                                      method="post">
+
+                                    @Html.AntiForgeryToken()
+
+                                    <input type="hidden"
+                                           name="id"
+                                           value="@request.Id" />
+
+                                    <button type="submit"
+                                            class="admin-reject-button">
+
+                                        ✕ Reddet
+
+                                    </button>
+
+                                </form>
+
+                            </div>
+
+                        </div>
+                    }
+
+                </div>
+            }
+
+        </div>
+
+
+        <!-- =================================================
+             AKTİF YÖNETİCİLER
+        ================================================== -->
+
+        <div class="admin-panel-section admin-dashboard-section">
+
+            <div class="admin-panel-section-header">
+
+                <div>
+                    <h2>Aktif Yöneticiler</h2>
+
+                    <p>
+                        Sistemde yönetici yetkisine sahip hesaplar.
+                    </p>
+                </div>
+
+                <span class="admin-active-admin-count">
+                    @Model.ActiveAdmins.Count yönetici
+                </span>
+
+            </div>
+
+
+            @if (Model.ActiveAdmins.Count == 0)
+            {
+                <div class="admin-dashboard-empty">
+
+                    <div>👤</div>
+
+                    <strong>
+                        Başka yönetici bulunmuyor
+                    </strong>
+
+                </div>
+            }
+            else
+            {
+                <div class="admin-request-list">
+
+                    @foreach (var admin in Model.ActiveAdmins)
+                    {
+                        <div class="admin-request-row">
+
+                            <div class="admin-request-user">
+
+                                <div class="admin-request-avatar">
+                                    👤
+                                </div>
+
+                                <div>
+
+                                    <strong>
+                                        @admin.FullName
+                                    </strong>
+
+                                    <span>
+                                        @admin.Email
+                                    </span>
+
+                                    <small>
+                                        Yönetici
+                                    </small>
+
+                                </div>
+
+                            </div>
+
+
+                            <form asp-controller="Admin"
+                                  asp-action="RemoveAdmin"
+                                  method="post">
+
+                                @Html.AntiForgeryToken()
+
+                                <input type="hidden"
+                                       name="id"
+                                       value="@admin.Id" />
+
+                                <button type="submit"
+                                        class="admin-remove-button">
+
+                                    Yetkiyi Kaldır
+
+                                </button>
+
+                            </form>
+
+                        </div>
+                    }
+
+                </div>
+            }
+
+        </div>
+    }
+
+</div>

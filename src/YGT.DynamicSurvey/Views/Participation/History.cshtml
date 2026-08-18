@@ -1,0 +1,54 @@
+@model List<YGT.DynamicSurvey.Models.SurveyResponse>
+
+@{
+    ViewData["Title"] = "Katıldıklarım";
+}
+
+<div class="results-page">
+    <div class="results-header">
+        <span class="dashboard-eyebrow">Katılım Geçmişi</span>
+        <h1>Katıldıklarım</h1>
+        <p>Hesabınla daha önce cevapladığın anketler.</p>
+    </div>
+
+    @if (Model.Count == 0)
+    {
+        <div class="dashboard-section">
+            <div class="dashboard-empty">
+                <div class="dashboard-empty-icon">✅</div>
+                <h3>Henüz bir ankete katılmadın.</h3>
+                <p>Açık anketlerden birine katıldığında burada görünecek.</p>
+
+                <a asp-controller="Participation"
+                   asp-action="OpenSurveys"
+                   class="dashboard-empty-button">
+                    Açık Anketlere Git
+                </a>
+            </div>
+        </div>
+    }
+    else
+    {
+        <div class="participation-history-list">
+            @foreach (var response in Model)
+            {
+                <article class="participation-history-card">
+                    <div class="participation-history-icon">✅</div>
+
+                    <div class="participation-history-main">
+                        <h2>@response.Survey.Title</h2>
+                        <p>Anket Kodu: <strong>@response.Survey.Code</strong></p>
+                        <small>
+                            Katılım:
+                            @response.SubmittedAt.ToLocalTime().ToString("dd.MM.yyyy HH:mm")
+                        </small>
+                    </div>
+
+                    <span class="participation-completed-badge">
+                        Tamamlandı
+                    </span>
+                </article>
+            }
+        </div>
+    }
+</div>

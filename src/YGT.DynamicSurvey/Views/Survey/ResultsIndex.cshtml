@@ -1,0 +1,150 @@
+@model YGT.DynamicSurvey.Models.ViewModels.Survey.ResultsIndexViewModel
+
+@{
+    ViewData["Title"] = "Sonuçlar";
+    var now = DateTime.Now;
+}
+
+<div class="results-page">
+
+    <div class="results-header">
+        <span class="dashboard-eyebrow">
+            Anket Analizi
+        </span>
+
+        <h1>
+            Sonuçlar
+        </h1>
+
+        <p>
+            Anketlerini seçerek gerçek katılımcı cevaplarını inceleyebilirsin.
+        </p>
+    </div>
+
+
+    @if (Model.Surveys.Count == 0)
+    {
+        <div class="dashboard-section">
+
+            <div class="dashboard-empty">
+
+                <div class="dashboard-empty-icon">
+                    📊
+                </div>
+
+                <h3>
+                    Henüz sonuç görüntülenecek anket yok.
+                </h3>
+
+                <p>
+                    İlk anketini oluşturup cevap toplamaya başlayabilirsin.
+                </p>
+
+                <a asp-controller="Survey"
+                   asp-action="Create"
+                   class="dashboard-empty-button">
+
+                    + Yeni Anket Oluştur
+
+                </a>
+
+            </div>
+
+        </div>
+    }
+    else
+    {
+        <div class="results-survey-list">
+
+            @foreach (var survey in Model.Surveys)
+            {
+                string statusText;
+                string statusClass;
+
+                if (!survey.IsActive)
+                {
+                    statusText = "Durduruldu";
+                    statusClass = "passive";
+                }
+                else if (survey.StartDate == default ||
+                         survey.EndDate == default)
+                {
+                    statusText = "Tarih Belirlenmemiş";
+                    statusClass = "passive";
+                }
+                else if (now < survey.StartDate)
+                {
+                    statusText = "Planlandı";
+                    statusClass = "planned";
+                }
+                else if (now > survey.EndDate)
+                {
+                    statusText = "Tamamlandı";
+                    statusClass = "completed";
+                }
+                else
+                {
+                    statusText = "Yayında";
+                    statusClass = "active";
+                }
+
+                <article class="results-survey-card">
+
+                    <div class="results-survey-main">
+
+                        <div class="results-survey-icon">
+                            📊
+                        </div>
+
+                        <div>
+
+                            <div class="results-survey-title-row">
+
+                                <h2>
+                                    @survey.Title
+                                </h2>
+
+                                <span class="dashboard-status @statusClass">
+                                    @statusText
+                                </span>
+
+                            </div>
+
+                            <p>
+                                Kod:
+                                <strong>@survey.Code</strong>
+                                ·
+                                <strong>@survey.ResponseCount</strong> cevap
+                            </p>
+
+                            @if (survey.StartDate != default &&
+                                 survey.EndDate != default)
+                            {
+                                <p class="results-survey-dates">
+                                    @survey.StartDate.ToString("dd.MM.yyyy HH:mm")
+                                    -
+                                    @survey.EndDate.ToString("dd.MM.yyyy HH:mm")
+                                </p>
+                            }
+
+                        </div>
+
+                    </div>
+
+
+                    <a asp-controller="Survey"
+                       asp-action="Results"
+                       asp-route-id="@survey.Id"
+                       class="survey-action-primary">
+
+                        📊 Sonuçları İncele
+
+                    </a>
+
+                </article>
+            }
+
+        </div>
+    }
+
+</div>

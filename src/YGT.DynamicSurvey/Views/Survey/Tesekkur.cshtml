@@ -1,0 +1,44 @@
+@{
+    ViewData["Title"] = "Teşekkürler";
+}
+
+<section class="legal-page">
+
+    <div class="container">
+
+        <div class="legal-card text-center">
+
+            <div style="font-size: 4rem;">
+                ✓
+            </div>
+
+            <h1>
+                Teşekkürler!
+            </h1>
+
+            <p class="lead">
+                Anket cevaplarınız başarıyla kaydedildi.
+                Katılımınız için teşekkür ederiz.
+            </p>
+
+            @if (ViewBag.SurveyCode is not null)
+            {
+                <p>
+                    Anket Kodu:
+                    <strong>
+                        @ViewBag.SurveyCode
+                    </strong>
+                </p>
+            }
+
+            <a asp-controller="Home"
+               asp-action="Index"
+               class="btn btn-dark mt-3 px-4">
+                Ana Sayfaya Dön
+            </a>
+
+        </div>
+
+    </div>
+
+</section>

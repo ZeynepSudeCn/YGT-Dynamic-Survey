@@ -1,0 +1,1491 @@
+@model YGT.DynamicSurvey.Models.ViewModels.Survey.SurveyResultsViewModel
+@using YGT.DynamicSurvey.Models
+@using System.Globalization
+@using System.Text.Json
+
+@{
+    ViewData["Title"] = "Anket Sonuçları";
+
+    var questionsJson = JsonSerializer.Serialize(
+        Model.Questions,
+        new JsonSerializerOptions
+        {
+            PropertyNamingPolicy = JsonNamingPolicy.CamelCase
+        });
+}
+
+<div class="results-page" id="resultsReportArea">
+
+    <!-- =====================================================
+         BAŞLIK
+    ====================================================== -->
+
+    <div class="results-detail-header">
+
+        <div>
+            <span class="dashboard-eyebrow">
+                ANKET ANALİZİ
+            </span>
+
+            <h1>
+                @Model.Title
+            </h1>
+
+            <p>
+                Anket kodu:
+                <strong>@Model.Code</strong>
+                ·
+                <strong>@Model.TotalResponses</strong> katılımcı
+            </p>
+        </div>
+
+        <div class="results-export-actions">
+
+            <button type="button"
+                    class="results-export-button pdf"
+                    id="exportPdfButton">
+                PDF İndir
+            </button>
+
+            <button type="button"
+                    class="results-export-button csv"
+                    id="exportCsvButton">
+                CSV İndir
+            </button>
+
+            <button type="button"
+                    class="results-export-button excel"
+                    id="exportExcelButton">
+                Excel İndir
+            </button>
+
+        </div>
+
+    </div>
+
+
+    <!-- =====================================================
+         ÖZET KARTLARI
+    ====================================================== -->
+
+    <div class="results-summary-grid">
+
+        <div class="results-summary-card">
+            <span class="results-summary-icon">👥</span>
+
+            <div>
+                <small>Toplam Katılımcı</small>
+                <strong>@Model.TotalResponses</strong>
+            </div>
+        </div>
+
+        <div class="results-summary-card">
+            <span class="results-summary-icon">📅</span>
+
+            <div>
+                <small>Başlangıç</small>
+
+                <strong>
+                    @(Model.StartDate == default
+                        ? "Belirlenmemiş"
+                        : Model.StartDate.ToString("dd.MM.yyyy HH:mm"))
+                </strong>
+            </div>
+        </div>
+
+        <div class="results-summary-card">
+            <span class="results-summary-icon">🏁</span>
+
+            <div>
+                <small>Bitiş</small>
+
+                <strong>
+                    @(Model.EndDate == default
+                        ? "Belirlenmemiş"
+                        : Model.EndDate.ToString("dd.MM.yyyy HH:mm"))
+                </strong>
+            </div>
+        </div>
+
+        <div class="results-summary-card">
+            <span class="results-summary-icon">⭐</span>
+
+            <div>
+                <small>Genel Puan Ortalaması</small>
+
+                <strong>
+                    @(Model.OverallRatingAverage.HasValue
+                        ? Model.OverallRatingAverage.Value.ToString("0.00")
+                        : "-")
+                </strong>
+            </div>
+        </div>
+
+    </div>
+
+
+    <div class="results-power-summary">
+        <article><span>👤 Üye yanıtları</span><strong>@Model.MemberResponses</strong></article>
+        <article><span>🕶️ Anonim yanıtlar</span><strong>@Model.AnonymousResponses</strong></article>
+        <article><span>📈 Katılım oranı</span><strong>%@Model.ParticipationRate</strong></article>
+        <article><span>⭐ Ortalama memnuniyet</span><strong>@(Model.OverallRatingAverage.HasValue ? $"{Model.OverallRatingAverage:0.0}/5" : "-")</strong></article>
+        <article class="wide"><span>🏆 En çok verilen cevap</span><strong>“@Model.MostCommonAnswer”</strong></article>
+    </div>
+
+    <div class="results-response-filters" role="group" aria-label="Cevap filtreleri">
+        <button type="button" class="active">Tümü <b>@Model.TotalResponses</b></button>
+        <button type="button">Üye <b>@Model.MemberResponses</b></button>
+        <button type="button">Anonim <b>@Model.AnonymousResponses</b></button>
+    </div>
+
+    @if (Model.TotalResponses == 0)
+    {
+        <div class="dashboard-section">
+            <div class="dashboard-empty">
+                <div class="dashboard-empty-icon">📭</div>
+
+                <h3>Bu ankete henüz cevap verilmemiş.</h3>
+
+                <p>
+                    Katılımcılar cevap verdikçe grafikler ve analizler burada oluşacak.
+                </p>
+            </div>
+        </div>
+    }
+    else
+    {
+        <!-- =================================================
+             AKILLI VERİ ÖZETİ
+        ================================================== -->
+
+        <section class="ai-insight-card">
+
+            <div class="ai-insight-header">
+                <div>
+                    <span class="dashboard-eyebrow">
+                        OTOMATİK VERİ ANALİZİ
+                    </span>
+
+                    <h2 class="mb-0">
+                        Sonuçların Kısa Yorumu
+                    </h2>
+                </div>
+
+                <span class="ai-insight-badge">
+                    Gerçek anket verilerinden
+                </span>
+            </div>
+
+            <div class="ai-insight-body"
+                 id="smartInsightText">
+                Analiz hazırlanıyor...
+            </div>
+
+        </section>
+
+
+        <!-- =================================================
+             RAPORDA HANGİ SORULAR OLSUN?
+        ================================================== -->
+
+        <section class="results-export-filter-card">
+
+            <div class="results-section-title">
+
+                <div>
+                    <span class="dashboard-eyebrow">
+                        RAPOR FİLTRESİ
+                    </span>
+
+                    <h2>
+                        İndirmek İstediğin Soruları Seç
+                    </h2>
+                </div>
+
+                <div>
+                    <button type="button"
+                            class="survey-table-button"
+                            id="selectAllResultQuestions">
+                        Tümünü Seç
+                    </button>
+
+                    <button type="button"
+                            class="survey-table-button"
+                            id="clearAllResultQuestions">
+                        Temizle
+                    </button>
+                </div>
+
+            </div>
+
+            <p class="text-muted">
+                PDF, CSV ve Excel dosyalarına yalnızca seçtiğin sorular eklenecek.
+            </p>
+
+            <div class="results-export-filter-grid">
+
+                @for (var i = 0; i < Model.Questions.Count; i++)
+                {
+                    <label class="results-question-filter">
+
+                        <input type="checkbox"
+                               class="result-question-checkbox"
+                               value="@i"
+                               checked />
+
+                        <span>
+                            <strong>Soru @(i + 1)</strong>
+                            — @Model.Questions[i].Text
+                        </span>
+
+                    </label>
+                }
+
+            </div>
+
+        </section>
+
+
+        <!-- =================================================
+             GENEL GRAFİKLER
+        ================================================== -->
+
+        <section class="results-overview-section">
+
+            <div class="results-section-title">
+
+                <div>
+                    <span class="dashboard-eyebrow">
+                        GRAFİK ÖZETİ
+                    </span>
+
+                    <h2>
+                        Genel Görünüm
+                    </h2>
+                </div>
+
+                <p class="text-muted mb-0">
+                    Anketin genel yanıt dağılımı ve soru yapısı.
+                </p>
+
+            </div>
+
+            <div class="results-overview-grid">
+
+                <div class="results-chart-card">
+
+                    <div class="results-chart-title">
+                        <strong>Soru Bazında Yanıt Sayısı</strong>
+                        <span>Katılım yoğunluğu</span>
+                    </div>
+
+                    <div class="results-chart-canvas-wrap wide">
+                        <canvas id="questionAnswerCountChart"></canvas>
+                    </div>
+
+                </div>
+
+                <div class="results-chart-card">
+
+                    <div class="results-chart-title">
+                        <strong>Soru Tipleri</strong>
+                        <span>Anket yapısı</span>
+                    </div>
+
+                    <div class="results-chart-canvas-wrap">
+                        <canvas id="questionTypeChart"></canvas>
+                    </div>
+
+                </div>
+
+            </div>
+
+        </section>
+
+
+        <!-- =================================================
+             SORU BAZLI SONUÇLAR
+        ================================================== -->
+
+        <div class="question-results-list">
+
+            @for (var i = 0; i < Model.Questions.Count; i++)
+            {
+                var question = Model.Questions[i];
+
+                <section class="question-result-card"
+                         data-result-question-index="@i">
+
+                    <div class="question-result-header">
+
+                        <div>
+                            <span>Soru @(i + 1)</span>
+                            <h2>@question.Text</h2>
+                        </div>
+
+                        <strong>
+                            @question.TotalAnswers cevap
+                        </strong>
+
+                    </div>
+
+
+                    @if (question.Type == QuestionType.SingleChoice ||
+                         question.Type == QuestionType.MultipleChoice ||
+                         question.Type == QuestionType.Likert ||
+                         question.Type == QuestionType.YesNo ||
+                         question.Type == QuestionType.Rating)
+                    {
+                        @if (question.Type == QuestionType.Rating)
+                        {
+                            <div class="result-average-box">
+                                ⭐ Ortalama:
+                                <strong>
+                                    @(question.AverageValue?.ToString("0.00") ?? "-")
+                                </strong>
+                            </div>
+                        }
+
+                        <div class="question-result-layout">
+
+                            <div class="result-option-list">
+
+                                @foreach (var option in question.Options.OrderBy(x => x.OptionId))
+                                {
+                                    var width = option.Percentage.ToString(
+                                        CultureInfo.InvariantCulture);
+
+                                    <div class="result-option-row">
+
+                                        <div class="result-option-top">
+
+                                            <span>
+                                                @option.Text
+                                                @if (question.Type == QuestionType.Rating)
+                                                {
+                                                    <text>⭐</text>
+                                                }
+                                            </span>
+
+                                            <strong>
+                                                @option.Count · %@option.Percentage.ToString("0.#")
+                                            </strong>
+
+                                        </div>
+
+                                        <div class="result-progress">
+                                            <div class="result-progress-value"
+                                                 style="width:@(width)%">
+                                            </div>
+                                        </div>
+
+                                    </div>
+                                }
+
+                            </div>
+
+                            <div class="question-chart-grid">
+
+                                <div class="results-chart-card compact">
+                                    <div class="results-chart-title">
+                                        <strong>Dağılım</strong>
+                                        <span>Halka grafik</span>
+                                    </div>
+
+                                    <div class="results-chart-canvas-wrap">
+                                        <canvas id="doughnutChart_@i"></canvas>
+                                    </div>
+                                </div>
+
+                                <div class="results-chart-card compact">
+                                    <div class="results-chart-title">
+                                        <strong>Karşılaştırma</strong>
+                                        <span>Bar grafik</span>
+                                    </div>
+
+                                    <div class="results-chart-canvas-wrap">
+                                        <canvas id="barChart_@i"></canvas>
+                                    </div>
+                                </div>
+
+                            </div>
+
+                        </div>
+                    }
+                    else if (question.Type == QuestionType.Number)
+                    {
+                        <div class="number-result-grid">
+
+                            <div>
+                                <small>Ortalama</small>
+                                <strong>
+                                    @(question.AverageValue?.ToString("0.##") ?? "-")
+                                </strong>
+                            </div>
+
+                            <div>
+                                <small>En Düşük</small>
+                                <strong>
+                                    @(question.MinimumValue?.ToString("0.##") ?? "-")
+                                </strong>
+                            </div>
+
+                            <div>
+                                <small>En Yüksek</small>
+                                <strong>
+                                    @(question.MaximumValue?.ToString("0.##") ?? "-")
+                                </strong>
+                            </div>
+
+                        </div>
+
+                        <div class="results-chart-card">
+
+                            <div class="results-chart-title">
+                                <strong>Sayısal Yanıt Dağılımı</strong>
+                                <span>Yanıt sırasına göre</span>
+                            </div>
+
+                            <div class="results-chart-canvas-wrap wide">
+                                <canvas id="numberChart_@i"></canvas>
+                            </div>
+
+                        </div>
+                    }
+                    else if (question.Type == QuestionType.ShortText ||
+                             question.Type == QuestionType.LongText)
+                    {
+                        <div class="text-answer-list">
+
+                            @if (question.TextAnswers.Count == 0)
+                            {
+                                <div class="text-answer-item">
+                                    Bu soruya yazılı yanıt verilmemiş.
+                                </div>
+                            }
+                            else
+                            {
+                                @foreach (var answer in question.TextAnswers)
+                                {
+                                    <div class="text-answer-item">
+                                        @answer
+                                    </div>
+                                }
+                            }
+
+                        </div>
+                    }
+
+                </section>
+            }
+
+        </div>
+    }
+
+</div>
+
+
+@section Scripts {
+
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.7/dist/chart.umd.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/html2canvas@1.4.1/dist/html2canvas.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/jspdf@2.5.2/dist/jspdf.umd.min.js"></script>
+
+    <script>
+        (() => {
+
+            const surveyTitle =
+                @Html.Raw(JsonSerializer.Serialize(Model.Title));
+
+            const surveyCode =
+                @Html.Raw(JsonSerializer.Serialize(Model.Code));
+
+            const totalResponses =
+                @Model.TotalResponses;
+
+            const questions =
+                @Html.Raw(questionsJson);
+
+            const chartColors = [
+                "#2563eb",
+                "#7c3aed",
+                "#10b981",
+                "#f59e0b",
+                "#ef4444",
+                "#06b6d4",
+                "#ec4899",
+                "#6366f1",
+                "#84cc16",
+                "#f97316"
+            ];
+
+
+            // =================================================
+            // SEÇİLİ SORULAR
+            // =================================================
+
+            const questionCheckboxes =
+                [...document.querySelectorAll(
+                    ".result-question-checkbox"
+                )];
+
+            const getSelectedQuestionIndexes =
+                () =>
+                    questionCheckboxes
+                        .filter(x => x.checked)
+                        .map(x => Number(x.value));
+
+            document.getElementById(
+                "selectAllResultQuestions"
+            )?.addEventListener(
+                "click",
+                () => {
+                    questionCheckboxes.forEach(
+                        x => x.checked = true
+                    );
+                }
+            );
+
+            document.getElementById(
+                "clearAllResultQuestions"
+            )?.addEventListener(
+                "click",
+                () => {
+                    questionCheckboxes.forEach(
+                        x => x.checked = false
+                    );
+                }
+            );
+
+
+            // =================================================
+            // GRAFİKLER
+            // =================================================
+
+            if (typeof Chart !== "undefined") {
+
+                Chart.defaults.font.family =
+                    "Arial, Helvetica, sans-serif";
+
+                Chart.defaults.color =
+                    "#475467";
+
+                const answerCountCanvas =
+                    document.getElementById(
+                        "questionAnswerCountChart"
+                    );
+
+                if (answerCountCanvas) {
+                    new Chart(
+                        answerCountCanvas,
+                        {
+                            type: "bar",
+                            data: {
+                                labels:
+                                    questions.map(
+                                        (_, i) => `Soru ${i + 1}`
+                                    ),
+                                datasets: [
+                                    {
+                                        data:
+                                            questions.map(
+                                                q => q.totalAnswers
+                                            ),
+                                        backgroundColor:
+                                            questions.map(
+                                                (_, i) =>
+                                                    chartColors[
+                                                        i %
+                                                        chartColors.length
+                                                    ]
+                                            ),
+                                        borderRadius: 8
+                                    }
+                                ]
+                            },
+                            options: {
+                                responsive: true,
+                                maintainAspectRatio: false,
+                                plugins: {
+                                    legend: {
+                                        display: false
+                                    }
+                                },
+                                scales: {
+                                    y: {
+                                        beginAtZero: true,
+                                        ticks: {
+                                            precision: 0
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    );
+                }
+
+
+                const typeNames = {
+                    1: "Tek Seçim",
+                    2: "Çoklu Seçim",
+                    3: "Kısa Metin",
+                    4: "Uzun Metin",
+                    5: "Puanlama",
+                    6: "Likert",
+                    7: "Sayısal",
+                    8: "Evet / Hayır"
+                };
+
+                const typeCounts = {};
+
+                questions.forEach(q => {
+                    const name =
+                        typeNames[q.type] ?? "Diğer";
+
+                    typeCounts[name] =
+                        (typeCounts[name] ?? 0) + 1;
+                });
+
+                const typeCanvas =
+                    document.getElementById(
+                        "questionTypeChart"
+                    );
+
+                if (typeCanvas) {
+                    new Chart(
+                        typeCanvas,
+                        {
+                            type: "doughnut",
+                            data: {
+                                labels:
+                                    Object.keys(typeCounts),
+                                datasets: [
+                                    {
+                                        data:
+                                            Object.values(typeCounts),
+                                        backgroundColor:
+                                            Object.keys(typeCounts)
+                                                .map(
+                                                    (_, i) =>
+                                                        chartColors[
+                                                            i %
+                                                            chartColors.length
+                                                        ]
+                                                ),
+                                        borderWidth: 0
+                                    }
+                                ]
+                            },
+                            options: {
+                                responsive: true,
+                                maintainAspectRatio: false,
+                                cutout: "68%",
+                                plugins: {
+                                    legend: {
+                                        position: "bottom"
+                                    }
+                                }
+                            }
+                        }
+                    );
+                }
+
+
+                questions.forEach(
+                    (question, index) => {
+
+                        if (
+                            [1, 2, 5, 6, 8]
+                                .includes(question.type) &&
+                            question.options?.length
+                        ) {
+                            const labels =
+                                question.options.map(
+                                    x => x.text
+                                );
+
+                            const values =
+                                question.options.map(
+                                    x => x.count
+                                );
+
+                            const colors =
+                                labels.map(
+                                    (_, i) =>
+                                        chartColors[
+                                            i %
+                                            chartColors.length
+                                        ]
+                                );
+
+                            const doughnut =
+                                document.getElementById(
+                                    `doughnutChart_${index}`
+                                );
+
+                            if (doughnut) {
+                                new Chart(
+                                    doughnut,
+                                    {
+                                        type: "doughnut",
+                                        data: {
+                                            labels: labels,
+                                            datasets: [
+                                                {
+                                                    data: values,
+                                                    backgroundColor:
+                                                        colors,
+                                                    borderWidth: 0
+                                                }
+                                            ]
+                                        },
+                                        options: {
+                                            responsive: true,
+                                            maintainAspectRatio: false,
+                                            cutout: "70%",
+                                            plugins: {
+                                                legend: {
+                                                    position: "bottom"
+                                                }
+                                            }
+                                        }
+                                    }
+                                );
+                            }
+
+                            const bar =
+                                document.getElementById(
+                                    `barChart_${index}`
+                                );
+
+                            if (bar) {
+                                new Chart(
+                                    bar,
+                                    {
+                                        type: "bar",
+                                        data: {
+                                            labels: labels,
+                                            datasets: [
+                                                {
+                                                    data: values,
+                                                    backgroundColor:
+                                                        colors,
+                                                    borderRadius: 8
+                                                }
+                                            ]
+                                        },
+                                        options: {
+                                            responsive: true,
+                                            maintainAspectRatio: false,
+                                            indexAxis:
+                                                labels.length > 4
+                                                    ? "y"
+                                                    : "x",
+                                            plugins: {
+                                                legend: {
+                                                    display: false
+                                                }
+                                            },
+                                            scales: {
+                                                x: {
+                                                    beginAtZero: true,
+                                                    ticks: {
+                                                        precision: 0
+                                                    }
+                                                },
+                                                y: {
+                                                    beginAtZero: true,
+                                                    ticks: {
+                                                        precision: 0
+                                                    }
+                                                }
+                                            }
+                                        }
+                                    }
+                                );
+                            }
+                        }
+
+
+                        if (
+                            question.type === 7 &&
+                            question.textAnswers?.length
+                        ) {
+                            const values =
+                                question.textAnswers
+                                    .map(
+                                        value =>
+                                            Number(
+                                                String(value)
+                                                    .replace(",", ".")
+                                            )
+                                    )
+                                    .filter(
+                                        value =>
+                                            Number.isFinite(value)
+                                    );
+
+                            const canvas =
+                                document.getElementById(
+                                    `numberChart_${index}`
+                                );
+
+                            if (
+                                canvas &&
+                                values.length > 0
+                            ) {
+                                new Chart(
+                                    canvas,
+                                    {
+                                        type: "line",
+                                        data: {
+                                            labels:
+                                                values.map(
+                                                    (_, i) =>
+                                                        `Yanıt ${i + 1}`
+                                                ),
+                                            datasets: [
+                                                {
+                                                    data: values,
+                                                    borderColor:
+                                                        "#2563eb",
+                                                    backgroundColor:
+                                                        "rgba(37,99,235,.12)",
+                                                    fill: true,
+                                                    tension: .3,
+                                                    pointRadius: 4
+                                                }
+                                            ]
+                                        },
+                                        options: {
+                                            responsive: true,
+                                            maintainAspectRatio: false,
+                                            plugins: {
+                                                legend: {
+                                                    display: false
+                                                }
+                                            }
+                                        }
+                                    }
+                                );
+                            }
+                        }
+
+                    }
+                );
+            }
+
+
+            // =================================================
+            // GERÇEK VERİDEN OTOMATİK YORUM
+            // =================================================
+
+            function buildSmartInsight() {
+
+                const parts = [];
+
+                parts.push(
+                    `Ankete toplam ${totalResponses} kişi katılmıştır.`
+                );
+
+                const ratingQuestions =
+                    questions.filter(
+                        q =>
+                            q.type === 5 &&
+                            q.averageValue !== null &&
+                            q.averageValue !== undefined
+                    );
+
+                ratingQuestions.forEach(
+                    q => {
+
+                        const average =
+                            Number(q.averageValue);
+
+                        let interpretation;
+
+                        if (average >= 4.5) {
+                            interpretation =
+                                "çok yüksek bir memnuniyet ve güçlü olumlu görüş";
+                        }
+                        else if (average >= 3.75) {
+                            interpretation =
+                                "genel olarak olumlu bir değerlendirme";
+                        }
+                        else if (average >= 2.75) {
+                            interpretation =
+                                "orta seviyede ve geliştirmeye açık bir değerlendirme";
+                        }
+                        else if (average >= 2) {
+                            interpretation =
+                                "olumsuza yakın bir değerlendirme";
+                        }
+                        else {
+                            interpretation =
+                                "belirgin biçimde düşük bir değerlendirme";
+                        }
+
+                        parts.push(
+                            `"${q.text}" sorusunda ortalama ${average.toFixed(2)} puan elde edilmiştir. Bu sonuç ${interpretation} olduğunu göstermektedir.`
+                        );
+
+                    }
+                );
+
+
+                const choiceQuestions =
+                    questions.filter(
+                        q =>
+                            [1, 6, 8].includes(q.type) &&
+                            q.options?.length
+                    );
+
+                choiceQuestions.forEach(
+                    q => {
+
+                        const sorted =
+                            [...q.options]
+                                .sort(
+                                    (a, b) =>
+                                        b.count - a.count
+                                );
+
+                        const top =
+                            sorted[0];
+
+                        if (
+                            top &&
+                            top.count > 0
+                        ) {
+                            parts.push(
+                                `"${q.text}" sorusunda en çok tercih edilen yanıt "${top.text}" olmuş ve yanıtların %${Number(top.percentage).toFixed(1)}'ini oluşturmuştur.`
+                            );
+                        }
+
+                    }
+                );
+
+
+                const textQuestions =
+                    questions.filter(
+                        q =>
+                            [3, 4].includes(q.type) &&
+                            q.textAnswers?.length
+                    );
+
+                if (textQuestions.length > 0) {
+                    const textCount =
+                        textQuestions.reduce(
+                            (total, q) =>
+                                total +
+                                q.textAnswers.length,
+                            0
+                        );
+
+                    parts.push(
+                        `Açık uçlu sorularda toplam ${textCount} yazılı görüş bulunmaktadır. Bu yanıtlar ayrıntılı geri bildirim sağladığı için sayısal sonuçlarla birlikte değerlendirilmelidir.`
+                    );
+                }
+
+
+                if (parts.length === 1) {
+                    parts.push(
+                        "Mevcut yanıtlar henüz güçlü bir eğilim oluşturacak kadar ayrışmamıştır. Katılımcı sayısı arttıkça yorum daha anlamlı hale gelecektir."
+                    );
+                }
+
+
+                return parts.join(" ");
+            }
+
+            const insight =
+                document.getElementById(
+                    "smartInsightText"
+                );
+
+            if (insight) {
+                insight.textContent =
+                    buildSmartInsight();
+            }
+
+
+            // =================================================
+            // DOSYA ADI
+            // =================================================
+
+            function safeFileName(value) {
+                return String(value)
+                    .replace(/[<>:"/\\|?*]+/g, "")
+                    .replace(/\s+/g, "_")
+                    .slice(0, 80);
+            }
+
+            const baseFileName =
+                safeFileName(
+                    surveyTitle ||
+                    "anket_sonuclari"
+                );
+
+
+            // =================================================
+            // CSV
+            // =================================================
+
+            document.getElementById(
+                "exportCsvButton"
+            )?.addEventListener(
+                "click",
+                () => {
+
+                    const selected =
+                        getSelectedQuestionIndexes();
+
+                    if (selected.length === 0) {
+                        alert(
+                            "Önce en az bir soru seçmelisin."
+                        );
+                        return;
+                    }
+
+                    const rows = [
+                        ["Anket", surveyTitle],
+                        ["Anket Kodu", surveyCode],
+                        ["Toplam Katılımcı", totalResponses],
+                        []
+                    ];
+
+                    selected.forEach(
+                        index => {
+
+                            const question =
+                                questions[index];
+
+                            rows.push(
+                                [
+                                    `Soru ${index + 1}`,
+                                    question.text
+                                ]
+                            );
+
+                            rows.push(
+                                [
+                                    "Toplam Yanıt",
+                                    question.totalAnswers
+                                ]
+                            );
+
+                            if (question.options?.length) {
+
+                                rows.push(
+                                    [
+                                        "Seçenek",
+                                        "Sayı",
+                                        "Yüzde"
+                                    ]
+                                );
+
+                                question.options.forEach(
+                                    option => {
+                                        rows.push(
+                                            [
+                                                option.text,
+                                                option.count,
+                                                option.percentage
+                                            ]
+                                        );
+                                    }
+                                );
+                            }
+
+                            if (question.textAnswers?.length) {
+                                rows.push(
+                                    ["Yazılı Yanıtlar"]
+                                );
+
+                                question.textAnswers.forEach(
+                                    answer => {
+                                        rows.push([answer]);
+                                    }
+                                );
+                            }
+
+                            rows.push([]);
+                        }
+                    );
+
+                    const escapeCsv =
+                        value =>
+                            `"${String(value ?? "")
+                                .replaceAll('"', '""')}"`;
+
+                    const csv =
+                        "\uFEFF" +
+                        rows
+                            .map(
+                                row =>
+                                    row
+                                        .map(escapeCsv)
+                                        .join(";")
+                            )
+                            .join("\r\n");
+
+                    const blob =
+                        new Blob(
+                            [csv],
+                            {
+                                type:
+                                    "text/csv;charset=utf-8;"
+                            }
+                        );
+
+                    const url =
+                        URL.createObjectURL(blob);
+
+                    const link =
+                        document.createElement("a");
+
+                    link.href = url;
+                    link.download =
+                        `${baseFileName}_secilen_sorular.csv`;
+
+                    link.click();
+                    URL.revokeObjectURL(url);
+                }
+            );
+
+
+            // =================================================
+            // EXCEL
+            // =================================================
+
+            document.getElementById(
+                "exportExcelButton"
+            )?.addEventListener(
+                "click",
+                () => {
+
+                    const selected =
+                        getSelectedQuestionIndexes();
+
+                    if (selected.length === 0) {
+                        alert(
+                            "Önce en az bir soru seçmelisin."
+                        );
+                        return;
+                    }
+
+                    if (typeof XLSX === "undefined") {
+                        alert(
+                            "Excel kütüphanesi yüklenemedi."
+                        );
+                        return;
+                    }
+
+                    const workbook =
+                        XLSX.utils.book_new();
+
+                    const summary =
+                        XLSX.utils.aoa_to_sheet(
+                            [
+                                ["Alan", "Değer"],
+                                ["Anket", surveyTitle],
+                                ["Anket Kodu", surveyCode],
+                                ["Toplam Katılımcı", totalResponses],
+                                [
+                                    "Otomatik Yorum",
+                                    buildSmartInsight()
+                                ]
+                            ]
+                        );
+
+                    XLSX.utils.book_append_sheet(
+                        workbook,
+                        summary,
+                        "Genel Özet"
+                    );
+
+                    selected.forEach(
+                        index => {
+
+                            const q =
+                                questions[index];
+
+                            const rows = [
+                                ["Soru", q.text],
+                                ["Toplam Yanıt", q.totalAnswers]
+                            ];
+
+                            if (
+                                q.averageValue !== null &&
+                                q.averageValue !== undefined
+                            ) {
+                                rows.push(
+                                    ["Ortalama", q.averageValue]
+                                );
+                            }
+
+                            if (q.options?.length) {
+                                rows.push([]);
+                                rows.push(
+                                    ["Seçenek", "Sayı", "Yüzde"]
+                                );
+
+                                q.options.forEach(
+                                    option => {
+                                        rows.push(
+                                            [
+                                                option.text,
+                                                option.count,
+                                                option.percentage
+                                            ]
+                                        );
+                                    }
+                                );
+                            }
+
+                            if (q.textAnswers?.length) {
+                                rows.push([]);
+                                rows.push(["Yazılı Yanıt"]);
+
+                                q.textAnswers.forEach(
+                                    answer => {
+                                        rows.push([answer]);
+                                    }
+                                );
+                            }
+
+                            const sheet =
+                                XLSX.utils.aoa_to_sheet(
+                                    rows
+                                );
+
+                            const sheetName =
+                                `Soru_${index + 1}`
+                                    .slice(0, 31);
+
+                            XLSX.utils.book_append_sheet(
+                                workbook,
+                                sheet,
+                                sheetName
+                            );
+                        }
+                    );
+
+                    XLSX.writeFile(
+                        workbook,
+                        `${baseFileName}_secilen_sorular.xlsx`
+                    );
+                }
+            );
+
+
+            // =================================================
+            // PDF - SORULARI BÖLMEDEN SAYFA SAYFA
+            // =================================================
+
+            document.getElementById(
+                "exportPdfButton"
+            )?.addEventListener(
+                "click",
+                async () => {
+
+                    const selected =
+                        getSelectedQuestionIndexes();
+
+                    if (selected.length === 0) {
+                        alert(
+                            "Önce en az bir soru seçmelisin."
+                        );
+                        return;
+                    }
+
+                    if (
+                        typeof html2canvas === "undefined" ||
+                        !window.jspdf
+                    ) {
+                        alert(
+                            "PDF kütüphaneleri yüklenemedi."
+                        );
+                        return;
+                    }
+
+                    const button =
+                        document.getElementById(
+                            "exportPdfButton"
+                        );
+
+                    const oldText =
+                        button.textContent;
+
+                    button.disabled = true;
+                    button.textContent =
+                        "PDF hazırlanıyor...";
+
+                    try {
+
+                        const {
+                            jsPDF
+                        } =
+                            window.jspdf;
+
+                        const pdf =
+                            new jsPDF(
+                                "p",
+                                "mm",
+                                "a4"
+                            );
+
+                        const pageWidth =
+                            pdf.internal.pageSize.getWidth();
+
+                        const pageHeight =
+                            pdf.internal.pageSize.getHeight();
+
+                        const margin = 12;
+
+
+                        // KAPAK SAYFASI
+
+                        pdf.setFontSize(20);
+                        pdf.text(
+                            surveyTitle,
+                            margin,
+                            24
+                        );
+
+                        pdf.setFontSize(10);
+                        pdf.text(
+                            `Anket Kodu: ${surveyCode}`,
+                            margin,
+                            34
+                        );
+
+                        pdf.text(
+                            `Toplam Katılımcı: ${totalResponses}`,
+                            margin,
+                            41
+                        );
+
+                        const insightLines =
+                            pdf.splitTextToSize(
+                                buildSmartInsight(),
+                                pageWidth -
+                                margin * 2
+                            );
+
+                        pdf.setFontSize(11);
+                        pdf.text(
+                            "Sonuç Özeti",
+                            margin,
+                            56
+                        );
+
+                        pdf.setFontSize(9);
+                        pdf.text(
+                            insightLines,
+                            margin,
+                            64
+                        );
+
+
+                        // HER SORU AYRI SAYFA
+                        for (
+                            let position = 0;
+                            position < selected.length;
+                            position++
+                        ) {
+                            const questionIndex =
+                                selected[position];
+
+                            const card =
+                                document.querySelector(
+                                    `[data-result-question-index="${questionIndex}"]`
+                                );
+
+                            if (!card) {
+                                continue;
+                            }
+
+                            const canvas =
+                                await html2canvas(
+                                    card,
+                                    {
+                                        scale: 1.6,
+                                        useCORS: true,
+                                        backgroundColor:
+                                            "#ffffff"
+                                    }
+                                );
+
+                            const img =
+                                canvas.toDataURL(
+                                    "image/jpeg",
+                                    .94
+                                );
+
+                            const usableWidth =
+                                pageWidth -
+                                margin * 2;
+
+                            const usableHeight =
+                                pageHeight -
+                                margin * 2;
+
+                            let imgWidth =
+                                usableWidth;
+
+                            let imgHeight =
+                                canvas.height *
+                                imgWidth /
+                                canvas.width;
+
+                            if (imgHeight > usableHeight) {
+                                imgHeight =
+                                    usableHeight;
+
+                                imgWidth =
+                                    canvas.width *
+                                    imgHeight /
+                                    canvas.height;
+                            }
+
+                            pdf.addPage();
+
+                            const x =
+                                (pageWidth - imgWidth) / 2;
+
+                            const y =
+                                (pageHeight - imgHeight) / 2;
+
+                            pdf.addImage(
+                                img,
+                                "JPEG",
+                                x,
+                                y,
+                                imgWidth,
+                                imgHeight
+                            );
+                        }
+
+                        pdf.save(
+                            `${baseFileName}_rapor.pdf`
+                        );
+                    }
+                    catch (error) {
+                        console.error(error);
+
+                        alert(
+                            "PDF hazırlanırken bir hata oluştu."
+                        );
+                    }
+                    finally {
+                        button.disabled = false;
+                        button.textContent = oldText;
+                    }
+                }
+            );
+
+        })();
+    </script>
+}

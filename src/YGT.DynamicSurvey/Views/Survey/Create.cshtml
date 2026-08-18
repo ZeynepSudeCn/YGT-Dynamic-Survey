@@ -1,0 +1,1918 @@
+@model YGT.DynamicSurvey.Models.ViewModels.Survey.CreateSurveyViewModel
+@using YGT.DynamicSurvey.Models
+
+@{
+    ViewData["Title"] = "Yeni Anket Oluştur";
+}
+
+<style>
+    #dynamicSurveyBuilder {
+        width: 100%;
+        max-width: 1120px;
+        margin: 0 auto;
+        padding: 24px 22px 60px;
+    }
+
+    #dynamicSurveyBuilder * {
+        box-sizing: border-box;
+    }
+
+    .ds-builder-header {
+        display: flex;
+        align-items: center;
+        gap: 15px;
+        margin-bottom: 22px;
+    }
+
+    .ds-builder-header-icon {
+        width: 52px;
+        height: 52px;
+        display: grid;
+        place-items: center;
+        flex: 0 0 52px;
+        border-radius: 14px;
+        background: #eaf2ff;
+        color: #1769e0;
+        font-size: 1.55rem;
+        font-weight: 800;
+    }
+
+    .ds-builder-header h1 {
+        margin: 0 0 5px;
+        color: #101828;
+        font-size: 2rem;
+        font-weight: 760;
+        letter-spacing: -.025em;
+    }
+
+    .ds-builder-header p {
+        margin: 0;
+        color: #667085;
+        line-height: 1.55;
+    }
+
+    .ds-panel {
+        margin-bottom: 18px;
+        padding: 22px;
+        border: 1px solid #e4e7ec;
+        border-radius: 16px;
+        background: #fff;
+        box-shadow: 0 8px 24px rgba(16,24,40,.05);
+    }
+
+    .ds-panel-header {
+        display: flex;
+        align-items: flex-start;
+        justify-content: space-between;
+        gap: 16px;
+        margin-bottom: 20px;
+    }
+
+    .ds-panel-title {
+        display: flex;
+        align-items: flex-start;
+        gap: 11px;
+    }
+
+    .ds-panel-title-icon {
+        width: 38px;
+        height: 38px;
+        display: grid;
+        place-items: center;
+        flex: 0 0 38px;
+        border-radius: 10px;
+        background: #eef4ff;
+        color: #1769e0;
+        font-weight: 800;
+    }
+
+    .ds-panel-title h2 {
+        margin: 1px 0 4px;
+        color: #101828;
+        font-size: 1.08rem;
+    }
+
+    .ds-panel-title p {
+        margin: 0;
+        color: #667085;
+        font-size: .8rem;
+    }
+
+    .ds-info-grid,
+    .ds-question-settings,
+    .ds-condition-grid {
+        display: grid;
+        grid-template-columns: repeat(2,minmax(0,1fr));
+        gap: 16px;
+    }
+
+    .ds-field {
+        min-width: 0;
+    }
+
+    .ds-field label,
+    .ds-required-title {
+        display: block;
+        margin-bottom: 7px;
+        color: #344054;
+        font-size: .8rem;
+        font-weight: 700;
+    }
+
+    .ds-field .form-control,
+    .ds-field .form-select {
+        width: 100%;
+        min-height: 44px;
+        border: 1px solid #d0d5dd;
+        border-radius: 9px;
+        background: #fff;
+    }
+
+    .ds-field textarea.form-control {
+        min-height: 105px;
+        resize: vertical;
+    }
+
+    .ds-add-question {
+        min-height: 42px;
+        padding: 0 16px;
+        border: 0;
+        border-radius: 9px;
+        background: #101828;
+        color: #fff;
+        font-size: .8rem;
+        font-weight: 750;
+        cursor: pointer;
+    }
+
+    .ds-questions-panel {
+        padding: 0;
+        overflow: hidden;
+    }
+
+    .ds-questions-panel > .ds-panel-header {
+        margin: 0;
+        padding: 20px 22px;
+        border-bottom: 1px solid #eaecf0;
+    }
+
+    .ds-question-card {
+        padding: 22px;
+        border-bottom: 1px solid #eaecf0;
+        background: #fff;
+    }
+
+    .ds-question-card:last-child {
+        border-bottom: 0;
+    }
+
+    .ds-question-card-header {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 12px;
+        margin-bottom: 17px;
+    }
+
+    .ds-question-number {
+        display: flex;
+        align-items: center;
+        gap: 9px;
+    }
+
+    .ds-question-badge {
+        width: 31px;
+        height: 31px;
+        display: grid;
+        place-items: center;
+        border-radius: 9px;
+        background: #edf4ff;
+        color: #175cd3;
+        font-size: .76rem;
+        font-weight: 800;
+    }
+
+    .ds-question-card-header strong {
+        color: #101828;
+    }
+
+    .ds-remove-question {
+        min-height: 35px;
+        padding: 0 11px;
+        border: 1px solid #fecdca;
+        border-radius: 7px;
+        background: #fff6f5;
+        color: #b42318;
+        font-size: .72rem;
+        font-weight: 700;
+        cursor: pointer;
+    }
+
+    .ds-required-control {
+        min-height: 44px;
+        display: flex;
+        align-items: center;
+        gap: 9px;
+        padding: 0 12px;
+        border: 1px solid #e4e7ec;
+        border-radius: 9px;
+        background: #f9fafb;
+        color: #475467;
+        font-size: .8rem;
+    }
+
+    .ds-required-control input {
+        width: 17px;
+        height: 17px;
+    }
+
+    .ds-subpanel {
+        margin-top: 16px;
+        padding: 15px;
+        border: 1px solid #e4e7ec;
+        border-radius: 11px;
+        background: #f9fafb;
+    }
+
+    .ds-options-header {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 12px;
+        margin-bottom: 10px;
+    }
+
+    .ds-add-option {
+        min-height: 34px;
+        padding: 0 10px;
+        border: 1px solid #b2ccff;
+        border-radius: 7px;
+        background: #eff8ff;
+        color: #175cd3;
+        font-size: .7rem;
+        font-weight: 700;
+    }
+
+    .ds-option-row {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        margin-bottom: 8px;
+    }
+
+    .ds-option-row:last-child {
+        margin-bottom: 0;
+    }
+
+    .ds-option-row .form-control {
+        flex: 1;
+    }
+
+    .ds-remove-option {
+        width: 35px;
+        height: 35px;
+        border: 1px solid #fecdca;
+        border-radius: 7px;
+        background: #fff;
+        color: #b42318;
+        font-size: 1.1rem;
+    }
+
+    .ds-condition {
+        margin-top: 17px;
+        padding: 16px;
+        border: 1px solid #d6bbfb;
+        border-radius: 12px;
+        background: linear-gradient(135deg,#fcfaff,#f5f3ff);
+    }
+
+    .ds-condition-header {
+        display: flex;
+        align-items: flex-start;
+        gap: 10px;
+        margin-bottom: 13px;
+    }
+
+    .ds-condition-header span {
+        width: 34px;
+        height: 34px;
+        display: grid;
+        place-items: center;
+        flex: 0 0 34px;
+        border-radius: 9px;
+        background: #f4ebff;
+        color: #6938ef;
+    }
+
+    .ds-condition-header strong,
+    .ds-condition-header small {
+        display: block;
+    }
+
+    .ds-condition-header strong {
+        color: #42307d;
+    }
+
+    .ds-condition-header small {
+        margin-top: 2px;
+        color: #667085;
+        line-height: 1.4;
+    }
+
+    .ds-condition-disabled {
+        opacity: .6;
+    }
+
+    .ds-builder-actions {
+        display: flex;
+        justify-content: flex-end;
+        gap: 10px;
+        margin-top: 18px;
+    }
+
+    .ds-cancel,
+    .ds-submit {
+        min-height: 44px;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        padding: 0 17px;
+        border-radius: 9px;
+        font-size: .8rem;
+        font-weight: 750;
+        text-decoration: none;
+    }
+
+    .ds-cancel {
+        border: 1px solid #d0d5dd;
+        background: #fff;
+        color: #344054;
+    }
+
+    .ds-submit {
+        border: 1px solid #1769e0;
+        background: #1769e0;
+        color: #fff;
+    }
+
+    .ds-required-star {
+        color: #d92d20;
+        font-weight: 900;
+        margin-right: 4px;
+    }
+
+    .ds-required-note {
+        margin: -7px 0 18px;
+        color: #667085;
+        font-size: .75rem;
+    }
+
+    @@media (max-width: 760px) {
+        .ds-info-grid,
+        .ds-question-settings,
+        .ds-condition-grid {
+            grid-template-columns: 1fr;
+        }
+
+        .ds-panel-header {
+            align-items: stretch;
+            flex-direction: column;
+        }
+
+        .ds-add-question {
+            width: 100%;
+        }
+    }
+</style>
+
+<section id="dynamicSurveyBuilder">
+
+    <div class="ds-builder-header">
+        <div class="ds-builder-header-icon">+</div>
+
+        <div>
+            <h1>Yeni Dinamik Anket Oluştur</h1>
+            <p>
+                Soruları oluştur, soru tiplerini seç ve istersen cevaplara göre
+                sonraki soruları otomatik göster veya gizle.
+            </p>
+        </div>
+    </div>
+
+
+    <section class="survey-template-picker">
+        <div><strong>Anket şablonu seç</strong><span>Sıfırdan başla veya YGT için hazırlanmış bir akışı kullan.</span></div>
+        <div class="survey-template-grid">
+            <a asp-action="Create" asp-route-template="education">🎓 <b>Eğitim Değerlendirme</b></a>
+            <a asp-action="Create" asp-route-template="event">🎉 <b>Etkinlik Memnuniyet</b></a>
+            <a asp-action="Create" asp-route-template="trip">🚌 <b>Teknik Gezi</b></a>
+            <a asp-action="Create" asp-route-template="suggestion">💡 <b>Öneri Formu</b></a>
+            <a asp-action="Create" asp-route-template="blank">＋ <b>Boş Anket</b></a>
+        </div>
+    </section>
+
+    <form asp-controller="Survey"
+          asp-action="Create"
+          method="post"
+          id="createSurveyForm">
+
+        @Html.AntiForgeryToken()
+
+        <div asp-validation-summary="ModelOnly"
+             class="alert alert-danger"></div>
+
+
+        <section class="ds-panel">
+
+            <div class="ds-panel-header">
+                <div class="ds-panel-title">
+                    <span class="ds-panel-title-icon">i</span>
+                    <div>
+                        <h2>Anket Bilgileri</h2>
+                        <p>Başlık, açıklama ve yayın tarihlerini belirle.</p>
+                    </div>
+                </div>
+            </div>
+
+            <div class="ds-required-note">
+                <span class="ds-required-star">*</span> işaretli alanlar zorunludur.
+            </div>
+
+            <div class="ds-info-grid">
+
+                <div class="ds-field">
+                    <label asp-for="Title"><span class="ds-required-star">*</span>Anket Başlığı</label>
+                    <input asp-for="Title"
+                           class="form-control"
+                           placeholder="Örn: SAYZEK Etkinlik Değerlendirme Anketi" />
+                    <span asp-validation-for="Title"
+                          class="text-danger"></span>
+                </div>
+
+                <div class="ds-field">
+                    <label asp-for="Description"><span class="ds-required-star">*</span>Açıklama</label>
+                    <textarea asp-for="Description"
+                              class="form-control"
+                              placeholder="Anket hakkında kısa bir açıklama yaz..."></textarea>
+                    <span asp-validation-for="Description"
+                          class="text-danger"></span>
+                </div>
+
+                <div class="ds-field">
+                    <label asp-for="StartDate">
+                        <span class="ds-required-star">*</span>Başlangıç Tarihi ve Saati
+                    </label>
+                    <input asp-for="StartDate"
+                           asp-format="{0:yyyy-MM-ddTHH:mm}"
+                           type="datetime-local"
+                           class="form-control"
+                           required />
+                    <span asp-validation-for="StartDate"
+                          class="text-danger"></span>
+                </div>
+
+                <div class="ds-field">
+                    <label asp-for="EndDate">
+                        <span class="ds-required-star">*</span>Bitiş Tarihi ve Saati
+                    </label>
+                    <input asp-for="EndDate"
+                           asp-format="{0:yyyy-MM-ddTHH:mm}"
+                           type="datetime-local"
+                           class="form-control"
+                           required />
+                    <span asp-validation-for="EndDate"
+                          class="text-danger"></span>
+                </div>
+
+            </div>
+
+        </section>
+
+
+        <section class="ds-panel ds-questions-panel">
+
+            <div class="ds-panel-header">
+
+                <div class="ds-panel-title">
+                    <span class="ds-panel-title-icon">?</span>
+
+                    <div>
+                        <h2>Sorular ve Dinamik Akış</h2>
+                        <p>
+                            Koşullu gösterim ile bir cevabın sonraki soruyu açmasını sağlayabilirsin.
+                        </p>
+                    </div>
+                </div>
+
+                <button type="button"
+                        id="addQuestionButton"
+                        class="ds-add-question">
+                    + Soru Ekle
+                </button>
+
+            </div>
+
+
+            <div id="questionsContainer">
+
+                @for (var i = 0; i < Model.Questions.Count; i++)
+                {
+                    <article class="ds-question-card"
+                             data-question-index="@i">
+
+                        <div class="ds-question-card-header">
+
+                            <div class="ds-question-number">
+                                <span class="ds-question-badge">@(i + 1)</span>
+                                <strong class="question-number">Soru @(i + 1)</strong>
+                            </div>
+
+                            <button type="button"
+                                    class="ds-remove-question remove-question-button">
+                                Soruyu Sil
+                            </button>
+
+                        </div>
+
+
+                        <input type="hidden"
+                               name="Questions[@i].Order"
+                               value="@(i + 1)"
+                               class="question-order" />
+
+
+                        <div class="ds-field">
+                            <label>Soru Metni</label>
+
+                            <input type="text"
+                                   name="Questions[@i].Text"
+                                   value="@Model.Questions[i].Text"
+                                   class="form-control question-text-input"
+                                   placeholder="Sorunu buraya yaz..."
+                                   required />
+                        </div>
+
+
+                        <div class="ds-question-settings mt-3">
+
+                            <div class="ds-field">
+                                <label>Soru Tipi</label>
+
+                                <select name="Questions[@i].Type"
+                                        class="form-select question-type">
+
+                                    <option value="1" selected="@(Model.Questions[i].Type == QuestionType.SingleChoice)">Tek Seçim</option>
+                                    <option value="2" selected="@(Model.Questions[i].Type == QuestionType.MultipleChoice)">Çoklu Seçim</option>
+                                    <option value="3" selected="@(Model.Questions[i].Type == QuestionType.ShortText)">Kısa Metin</option>
+                                    <option value="4" selected="@(Model.Questions[i].Type == QuestionType.LongText)">Uzun Metin</option>
+                                    <option value="5" selected="@(Model.Questions[i].Type == QuestionType.Rating)">Puanlama / Yıldız</option>
+                                    <option value="6" selected="@(Model.Questions[i].Type == QuestionType.Likert)">Likert Ölçeği</option>
+                                    <option value="7" selected="@(Model.Questions[i].Type == QuestionType.Number)">Sayısal Yanıt</option>
+                                    <option value="8" selected="@(Model.Questions[i].Type == QuestionType.YesNo)">Evet / Hayır</option>
+
+                                </select>
+                            </div>
+
+
+                            <div>
+                                <span class="ds-required-title">Soru Durumu</span>
+
+                                <div class="ds-required-control">
+                                    <input type="checkbox"
+                                           name="Questions[@i].IsRequired"
+                                           value="true"
+                                           class="form-check-input"
+                                           @(Model.Questions[i].IsRequired ? "checked" : "") />
+
+                                    <input type="hidden"
+                                           name="Questions[@i].IsRequired"
+                                           value="false" />
+
+                                    <span>Bu soru zorunlu olsun</span>
+                                </div>
+                            </div>
+
+                        </div>
+
+
+                        <div class="rating-section ds-subpanel"
+                             style="display:none;">
+                            <div class="ds-field">
+                                <label>En Yüksek Puan</label>
+
+                                <select name="Questions[@i].RatingMaxValue"
+                                        class="form-select rating-max-select">
+                                    <option value="5" selected="@(Model.Questions[i].RatingMaxValue != 10)">5 Yıldız</option>
+                                    <option value="10" selected="@(Model.Questions[i].RatingMaxValue == 10)">10 Puan</option>
+                                </select>
+                            </div>
+                        </div>
+
+
+                        <div class="likert-section ds-subpanel"
+                             style="display:none;">
+                            <strong>Likert seçenekleri otomatik oluşturulur</strong>
+                            <div class="mt-2 text-muted">
+                                Kesinlikle Katılıyorum · Katılıyorum · Kararsızım ·
+                                Katılmıyorum · Kesinlikle Katılmıyorum
+                            </div>
+                        </div>
+
+
+                        <div class="yesno-section ds-subpanel"
+                             style="display:none;">
+                            <strong>Evet / Hayır seçenekleri otomatik oluşturulur.</strong>
+                        </div>
+
+
+                        <div class="number-section ds-subpanel"
+                             style="display:none;">
+                            <strong>Katılımcı bu soruya sayısal yanıt verir.</strong>
+                        </div>
+
+
+                        <div class="options-section ds-subpanel">
+
+                            <div class="ds-options-header">
+                                <strong>Seçenekler</strong>
+
+                                <button type="button"
+                                        class="ds-add-option add-option-button">
+                                    + Seçenek Ekle
+                                </button>
+                            </div>
+
+                            <div class="options-container">
+
+                                @{
+                                    var existingOptions =
+                                        Model.Questions[i].Options.Count >= 2
+                                            ? Model.Questions[i].Options
+                                            : new List<string> { "", "" };
+                                }
+
+                                @for (var optionIndex = 0;
+                                      optionIndex < existingOptions.Count;
+                                      optionIndex++)
+                                {
+                                    <div class="ds-option-row option-row">
+
+                                        <input type="text"
+                                               name="Questions[@i].Options[@optionIndex]"
+                                               value="@existingOptions[optionIndex]"
+                                               class="form-control"
+                                               placeholder="Seçenek @(optionIndex + 1)" />
+
+                                        <button type="button"
+                                                class="ds-remove-option remove-option-button">
+                                            ×
+                                        </button>
+
+                                    </div>
+                                }
+
+                            </div>
+
+                        </div>
+
+
+                        <div class="ds-condition">
+
+                            <div class="ds-condition-header">
+                                <span>↪</span>
+
+                                <div>
+                                    <strong>Gösterim Kuralı</strong>
+                                    <small>
+                                        Normal sorular için "Her zaman göster" seç.
+                                        Sadece gerektiğinde cevaba göre koşul ekle.
+                                    </small>
+                                </div>
+                            </div>
+
+                            <div class="ds-field mb-3">
+                                <label>Bu soru ne zaman gösterilsin?</label>
+
+                                <select class="form-select branch-mode-select">
+                                    @if (Model.Questions[i].DependsOnQuestionOrder.HasValue)
+                                    {
+                                        <option value="always">Her zaman göster</option>
+                                        <option value="conditional" selected>Koşula göre göster</option>
+                                    }
+                                    else
+                                    {
+                                        <option value="always" selected>Her zaman göster</option>
+                                        <option value="conditional">Koşula göre göster</option>
+                                    }
+                                </select>
+                            </div>
+
+                            <div class="branch-condition-fields">
+
+                                <div class="ds-condition-grid">
+
+                                    <div class="ds-field">
+                                        <label>Hangi soruya bağlı?</label>
+
+                                        <select name="Questions[@i].DependsOnQuestionOrder"
+                                                class="form-select branch-parent-select"
+                                                data-current-value="@Model.Questions[i].DependsOnQuestionOrder">
+                                            <option value="">Önce soru seç</option>
+                                        </select>
+                                    </div>
+
+                                    <div class="ds-field">
+                                        <label>Koşul</label>
+
+                                        <select name="Questions[@i].ConditionOperator"
+                                                class="form-select branch-operator-select"
+                                                data-current-value="@Model.Questions[i].ConditionOperator">
+                                        </select>
+                                    </div>
+
+                                </div>
+
+                                <div class="ds-field mt-3 branch-value-field">
+                                    <label>Değer / Cevap</label>
+
+                                    <input type="text"
+                                           name="Questions[@i].ShowWhenAnswerEquals"
+                                           value="@Model.Questions[i].ShowWhenAnswerEquals"
+                                           class="form-control branch-value-input"
+                                           list="branchValues_@i"
+                                           placeholder="Koşul değerini seç veya yaz"
+                                           autocomplete="off" />
+
+                                    <datalist id="branchValues_@i"
+                                              class="branch-value-list"></datalist>
+                                </div>
+
+                            </div>
+
+                        </div>
+
+                    </article>
+                }
+
+            </div>
+
+        </section>
+
+
+        <div class="ds-builder-actions">
+            <a asp-controller="Survey"
+               asp-action="Index"
+               class="ds-cancel">
+                Vazgeç
+            </a>
+
+            <button type="submit"
+                    class="ds-submit">
+                Dinamik Anketi Oluştur
+            </button>
+        </div>
+
+    </form>
+
+</section>
+
+
+@section Scripts {
+
+    <partial name="_ValidationScriptsPartial" />
+
+    <script>
+        (() => {
+
+            const container =
+                document.getElementById("questionsContainer");
+
+            const addQuestionButton =
+                document.getElementById("addQuestionButton");
+
+            const form =
+                document.getElementById("createSurveyForm");
+
+            const startDate =
+                document.getElementById("StartDate");
+
+            const endDate =
+                document.getElementById("EndDate");
+
+            if (!container || !addQuestionButton) {
+                return;
+            }
+
+
+            function escapeHtml(value) {
+                return String(value ?? "")
+                    .replaceAll("&", "&amp;")
+                    .replaceAll("<", "&lt;")
+                    .replaceAll(">", "&gt;")
+                    .replaceAll('"', "&quot;")
+                    .replaceAll("'", "&#039;");
+            }
+
+
+            function updateQuestionType(card) {
+
+                const type =
+                    card.querySelector(".question-type")?.value;
+
+                const options =
+                    card.querySelector(".options-section");
+
+                const rating =
+                    card.querySelector(".rating-section");
+
+                const likert =
+                    card.querySelector(".likert-section");
+
+                const yesNo =
+                    card.querySelector(".yesno-section");
+
+                const number =
+                    card.querySelector(".number-section");
+
+                if (!options || !rating || !likert || !yesNo || !number) {
+                    return;
+                }
+
+                options.style.display = "none";
+                rating.style.display = "none";
+                likert.style.display = "none";
+                yesNo.style.display = "none";
+                number.style.display = "none";
+
+                if (type === "1" || type === "2") {
+                    options.style.display = "block";
+                }
+                else if (type === "5") {
+                    rating.style.display = "block";
+                }
+                else if (type === "6") {
+                    likert.style.display = "block";
+                }
+                else if (type === "7") {
+                    number.style.display = "block";
+                }
+                else if (type === "8") {
+                    yesNo.style.display = "block";
+                }
+            }
+
+
+            function getParentQuestionType(parentCard) {
+                return parentCard
+                    ?.querySelector(".question-type")
+                    ?.value ?? "";
+            }
+
+
+            function parentAnswerValues(parentCard) {
+
+                const type =
+                    getParentQuestionType(parentCard);
+
+                if (type === "8") {
+                    return ["Evet", "Hayır"];
+                }
+
+                if (type === "6") {
+                    return [
+                        "Kesinlikle Katılıyorum",
+                        "Katılıyorum",
+                        "Kararsızım",
+                        "Katılmıyorum",
+                        "Kesinlikle Katılmıyorum"
+                    ];
+                }
+
+                if (type === "5") {
+                    const max =
+                        Number(
+                            parentCard.querySelector(".rating-max-select")?.value ?? "5"
+                        );
+
+                    return Array.from(
+                        { length: max },
+                        (_, index) => String(index + 1)
+                    );
+                }
+
+                if (type === "1" || type === "2") {
+                    return [...parentCard.querySelectorAll(
+                        ".options-container input[type='text']"
+                    )]
+                    .map(x => x.value.trim())
+                    .filter(Boolean);
+                }
+
+                return [];
+            }
+
+
+            function operatorOptionsForType(type) {
+
+                if (type === "5" || type === "7") {
+                    return [
+                        ["1", "Eşitse"],
+                        ["2", "Eşit değilse"],
+                        ["3", "Küçükse"],
+                        ["4", "Küçük veya eşitse"],
+                        ["5", "Büyükse"],
+                        ["6", "Büyük veya eşitse"],
+                        ["8", "Cevaplandıysa"],
+                        ["9", "Cevaplanmadıysa"]
+                    ];
+                }
+
+                if (
+                    type === "1" ||
+                    type === "2" ||
+                    type === "6" ||
+                    type === "8"
+                ) {
+                    return [
+                        ["1", "Eşitse"],
+                        ["2", "Eşit değilse"],
+                        ["8", "Cevaplandıysa"],
+                        ["9", "Cevaplanmadıysa"]
+                    ];
+                }
+
+                return [
+                    ["1", "Eşitse"],
+                    ["2", "Eşit değilse"],
+                    ["7", "Şu ifadeyi içeriyorsa"],
+                    ["8", "Cevaplandıysa"],
+                    ["9", "Cevaplanmadıysa"]
+                ];
+            }
+
+
+            function refreshConditionMode(card) {
+
+                const mode =
+                    card.querySelector(".branch-mode-select");
+
+                const fields =
+                    card.querySelector(".branch-condition-fields");
+
+                const parent =
+                    card.querySelector(".branch-parent-select");
+
+                const operator =
+                    card.querySelector(".branch-operator-select");
+
+                const value =
+                    card.querySelector(".branch-value-input");
+
+                if (
+                    !mode ||
+                    !fields ||
+                    !parent ||
+                    !operator ||
+                    !value
+                ) {
+                    return;
+                }
+
+                const conditional =
+                    mode.value === "conditional";
+
+                fields.style.display =
+                    conditional
+                        ? "block"
+                        : "none";
+
+                parent.disabled =
+                    !conditional;
+
+                operator.disabled =
+                    !conditional;
+
+                if (!conditional) {
+                    parent.value = "";
+                    parent.dataset.currentValue = "";
+                    value.value = "";
+                    value.disabled = true;
+                }
+                else {
+                    value.disabled = false;
+                }
+            }
+
+
+            function refreshBranchValueSuggestions(card) {
+
+                const parentSelect =
+                    card.querySelector(".branch-parent-select");
+
+                const operatorSelect =
+                    card.querySelector(".branch-operator-select");
+
+                const valueInput =
+                    card.querySelector(".branch-value-input");
+
+                const valueField =
+                    card.querySelector(".branch-value-field");
+
+                const dataList =
+                    card.querySelector(".branch-value-list");
+
+                if (
+                    !parentSelect ||
+                    !operatorSelect ||
+                    !valueInput ||
+                    !valueField ||
+                    !dataList
+                ) {
+                    return;
+                }
+
+                const parentOrder =
+                    Number(parentSelect.value || 0);
+
+                if (parentOrder <= 0) {
+                    operatorSelect.innerHTML =
+                        '<option value="">Önce bağlı soru seç</option>';
+
+                    valueInput.value = "";
+                    valueInput.disabled = true;
+                    valueField.style.display = "block";
+                    dataList.innerHTML = "";
+                    return;
+                }
+
+                const parentCard =
+                    [...container.querySelectorAll(".ds-question-card")]
+                        .find(
+                            x =>
+                                Number(x.dataset.questionIndex) + 1 ===
+                                parentOrder
+                        );
+
+                if (!parentCard) {
+                    return;
+                }
+
+                const parentType =
+                    getParentQuestionType(parentCard);
+
+                const previousOperator =
+                    operatorSelect.value ||
+                    operatorSelect.dataset.currentValue ||
+                    "";
+
+                const operatorOptions =
+                    operatorOptionsForType(parentType);
+
+                operatorSelect.innerHTML =
+                    operatorOptions
+                        .map(
+                            ([value, label]) =>
+                                `<option value="${value}">${label}</option>`
+                        )
+                        .join("");
+
+                if (
+                    previousOperator &&
+                    operatorOptions.some(
+                        ([value]) =>
+                            value === previousOperator
+                    )
+                ) {
+                    operatorSelect.value =
+                        previousOperator;
+                }
+
+                operatorSelect.dataset.currentValue =
+                    operatorSelect.value;
+
+                const noValueNeeded =
+                    operatorSelect.value === "8" ||
+                    operatorSelect.value === "9";
+
+                valueField.style.display =
+                    noValueNeeded
+                        ? "none"
+                        : "block";
+
+                valueInput.disabled =
+                    noValueNeeded;
+
+                if (noValueNeeded) {
+                    valueInput.value = "";
+                    dataList.innerHTML = "";
+                    return;
+                }
+
+                const values =
+                    parentAnswerValues(parentCard);
+
+                dataList.innerHTML =
+                    values
+                        .map(
+                            value =>
+                                `<option value="${escapeHtml(value)}"></option>`
+                        )
+                        .join("");
+
+                if (parentType === "5") {
+                    valueInput.type = "number";
+                    valueInput.min = "1";
+                    valueInput.max =
+                        parentCard.querySelector(
+                            ".rating-max-select"
+                        )?.value ?? "5";
+                    valueInput.step = "1";
+                    valueInput.placeholder =
+                        "Örn: 2";
+                }
+                else if (parentType === "7") {
+                    valueInput.type = "number";
+                    valueInput.removeAttribute("min");
+                    valueInput.removeAttribute("max");
+                    valueInput.step = "any";
+                    valueInput.placeholder =
+                        "Örn: 2";
+                }
+                else {
+                    valueInput.type = "text";
+                    valueInput.removeAttribute("min");
+                    valueInput.removeAttribute("max");
+                    valueInput.removeAttribute("step");
+
+                    valueInput.placeholder =
+                        values.length > 0
+                            ? `Örn: ${values[0]}`
+                            : "Koşul değerini yaz";
+                }
+
+                valueInput.disabled = false;
+            }
+
+
+            function refreshBranchSelectors() {
+
+                const cards =
+                    [...container.querySelectorAll(".ds-question-card")];
+
+                cards.forEach(
+                    (card, questionIndex) => {
+
+                        const mode =
+                            card.querySelector(".branch-mode-select");
+
+                        const select =
+                            card.querySelector(".branch-parent-select");
+
+                        if (!mode || !select) {
+                            return;
+                        }
+
+                        const previous =
+                            select.value ||
+                            select.dataset.currentValue ||
+                            "";
+
+                        const options = [
+                            '<option value="">Önce soru seç</option>'
+                        ];
+
+                        for (
+                            let parentIndex = 0;
+                            parentIndex < questionIndex;
+                            parentIndex++
+                        ) {
+                            const parentCard =
+                                cards[parentIndex];
+
+                            const parentText =
+                                parentCard
+                                    .querySelector(".question-text-input")
+                                    ?.value
+                                    ?.trim();
+
+                            const label =
+                                parentText ||
+                                `Soru ${parentIndex + 1}`;
+
+                            options.push(
+                                `<option value="${parentIndex + 1}">
+                                    Soru ${parentIndex + 1}: ${escapeHtml(label)}
+                                 </option>`
+                            );
+                        }
+
+                        select.innerHTML =
+                            options.join("");
+
+                        if (
+                            previous &&
+                            Number(previous) <= questionIndex
+                        ) {
+                            select.value =
+                                previous;
+
+                            if (mode.value !== "conditional") {
+                                mode.value = "conditional";
+                            }
+                        }
+                        else {
+                            select.value = "";
+                        }
+
+                        select.dataset.currentValue =
+                            select.value;
+
+                        refreshConditionMode(card);
+                        refreshBranchValueSuggestions(card);
+                    }
+                );
+            }
+
+
+            function updateIndexes() {
+
+                const cards =
+                    [...container.querySelectorAll(".ds-question-card")];
+
+                cards.forEach(
+                    (card, questionIndex) => {
+
+                        card.dataset.questionIndex =
+                            questionIndex;
+
+                        const badge =
+                            card.querySelector(".ds-question-badge");
+
+                        const number =
+                            card.querySelector(".question-number");
+
+                        const order =
+                            card.querySelector(".question-order");
+
+                        if (badge) {
+                            badge.textContent =
+                                String(questionIndex + 1);
+                        }
+
+                        if (number) {
+                            number.textContent =
+                                `Soru ${questionIndex + 1}`;
+                        }
+
+                        if (order) {
+                            order.value =
+                                String(questionIndex + 1);
+                        }
+
+                        card
+                            .querySelectorAll(
+                                "input[name], select[name], textarea[name]"
+                            )
+                            .forEach(
+                                field => {
+
+                                    const name =
+                                        field.getAttribute("name");
+
+                                    if (!name) {
+                                        return;
+                                    }
+
+                                    field.setAttribute(
+                                        "name",
+                                        name.replace(
+                                            /Questions\[\d+\]/,
+                                            `Questions[${questionIndex}]`
+                                        )
+                                    );
+                                }
+                            );
+
+                        card
+                            .querySelectorAll(".option-row")
+                            .forEach(
+                                (row, optionIndex) => {
+
+                                    const input =
+                                        row.querySelector(
+                                            "input[type='text']"
+                                        );
+
+                                    if (input) {
+                                        input.name =
+                                            `Questions[${questionIndex}].Options[${optionIndex}]`;
+
+                                        input.placeholder =
+                                            `Seçenek ${optionIndex + 1}`;
+                                    }
+                                }
+                            );
+
+                        const datalist =
+                            card.querySelector(".branch-value-list");
+
+                        const branchInput =
+                            card.querySelector(".branch-value-input");
+
+                        if (datalist) {
+                            datalist.id =
+                                `branchValues_${questionIndex}`;
+                        }
+
+                        if (branchInput) {
+                            branchInput.setAttribute(
+                                "list",
+                                `branchValues_${questionIndex}`
+                            );
+                        }
+
+                        updateQuestionType(card);
+                    }
+                );
+
+                refreshBranchSelectors();
+            }
+
+
+            function createQuestion(index) {
+
+                return `
+                    <article class="ds-question-card"
+                             data-question-index="${index}">
+
+                        <div class="ds-question-card-header">
+
+                            <div class="ds-question-number">
+                                <span class="ds-question-badge">${index + 1}</span>
+                                <strong class="question-number">Soru ${index + 1}</strong>
+                            </div>
+
+                            <button type="button"
+                                    class="ds-remove-question remove-question-button">
+                                Soruyu Sil
+                            </button>
+
+                        </div>
+
+                        <input type="hidden"
+                               name="Questions[${index}].Order"
+                               value="${index + 1}"
+                               class="question-order" />
+
+                        <div class="ds-field">
+                            <label>Soru Metni</label>
+
+                            <input type="text"
+                                   name="Questions[${index}].Text"
+                                   class="form-control question-text-input"
+                                   placeholder="Sorunu buraya yaz..."
+                                   required />
+                        </div>
+
+                        <div class="ds-question-settings mt-3">
+
+                            <div class="ds-field">
+                                <label>Soru Tipi</label>
+
+                                <select name="Questions[${index}].Type"
+                                        class="form-select question-type">
+
+                                    <option value="1">Tek Seçim</option>
+                                    <option value="2">Çoklu Seçim</option>
+                                    <option value="3">Kısa Metin</option>
+                                    <option value="4">Uzun Metin</option>
+                                    <option value="5">Puanlama / Yıldız</option>
+                                    <option value="6">Likert Ölçeği</option>
+                                    <option value="7">Sayısal Yanıt</option>
+                                    <option value="8">Evet / Hayır</option>
+
+                                </select>
+                            </div>
+
+                            <div>
+                                <span class="ds-required-title">Soru Durumu</span>
+
+                                <div class="ds-required-control">
+                                    <input type="checkbox"
+                                           name="Questions[${index}].IsRequired"
+                                           value="true"
+                                           class="form-check-input" />
+
+                                    <input type="hidden"
+                                           name="Questions[${index}].IsRequired"
+                                           value="false" />
+
+                                    <span>Bu soru zorunlu olsun</span>
+                                </div>
+                            </div>
+
+                        </div>
+
+                        <div class="rating-section ds-subpanel"
+                             style="display:none;">
+                            <div class="ds-field">
+                                <label>En Yüksek Puan</label>
+
+                                <select name="Questions[${index}].RatingMaxValue"
+                                        class="form-select rating-max-select">
+                                    <option value="5">5 Yıldız</option>
+                                    <option value="10">10 Puan</option>
+                                </select>
+                            </div>
+                        </div>
+
+                        <div class="likert-section ds-subpanel"
+                             style="display:none;">
+                            <strong>Likert seçenekleri otomatik oluşturulur.</strong>
+                        </div>
+
+                        <div class="yesno-section ds-subpanel"
+                             style="display:none;">
+                            <strong>Evet / Hayır seçenekleri otomatik oluşturulur.</strong>
+                        </div>
+
+                        <div class="number-section ds-subpanel"
+                             style="display:none;">
+                            <strong>Katılımcı bu soruya sayısal yanıt verir.</strong>
+                        </div>
+
+                        <div class="options-section ds-subpanel">
+
+                            <div class="ds-options-header">
+                                <strong>Seçenekler</strong>
+
+                                <button type="button"
+                                        class="ds-add-option add-option-button">
+                                    + Seçenek Ekle
+                                </button>
+                            </div>
+
+                            <div class="options-container">
+
+                                <div class="ds-option-row option-row">
+                                    <input type="text"
+                                           name="Questions[${index}].Options[0]"
+                                           class="form-control"
+                                           placeholder="Seçenek 1" />
+
+                                    <button type="button"
+                                            class="ds-remove-option remove-option-button">
+                                        ×
+                                    </button>
+                                </div>
+
+                                <div class="ds-option-row option-row">
+                                    <input type="text"
+                                           name="Questions[${index}].Options[1]"
+                                           class="form-control"
+                                           placeholder="Seçenek 2" />
+
+                                    <button type="button"
+                                            class="ds-remove-option remove-option-button">
+                                        ×
+                                    </button>
+                                </div>
+
+                            </div>
+                        </div>
+
+                        <div class="ds-condition">
+
+                            <div class="ds-condition-header">
+                                <span>↪</span>
+
+                                <div>
+                                    <strong>Gösterim Kuralı</strong>
+                                    <small>
+                                        Normal akış için her zaman göster.
+                                        Gerekirse önceki cevaba göre koşul ekle.
+                                    </small>
+                                </div>
+                            </div>
+
+                            <div class="ds-field mb-3">
+                                <label>Bu soru ne zaman gösterilsin?</label>
+
+                                <select class="form-select branch-mode-select">
+                                    <option value="always" selected>Her zaman göster</option>
+                                    <option value="conditional">Koşula göre göster</option>
+                                </select>
+                            </div>
+
+                            <div class="branch-condition-fields"
+                                 style="display:none;">
+
+                                <div class="ds-condition-grid">
+
+                                    <div class="ds-field">
+                                        <label>Hangi soruya bağlı?</label>
+
+                                        <select name="Questions[${index}].DependsOnQuestionOrder"
+                                                class="form-select branch-parent-select"
+                                                disabled>
+                                            <option value="">Önce soru seç</option>
+                                        </select>
+                                    </div>
+
+                                    <div class="ds-field">
+                                        <label>Koşul</label>
+
+                                        <select name="Questions[${index}].ConditionOperator"
+                                                class="form-select branch-operator-select"
+                                                disabled>
+                                            <option value="">Önce bağlı soru seç</option>
+                                        </select>
+                                    </div>
+
+                                </div>
+
+                                <div class="ds-field mt-3 branch-value-field">
+                                    <label>Değer / Cevap</label>
+
+                                    <input type="text"
+                                           name="Questions[${index}].ShowWhenAnswerEquals"
+                                           class="form-control branch-value-input"
+                                           list="branchValues_${index}"
+                                           placeholder="Koşul değerini seç veya yaz"
+                                           autocomplete="off"
+                                           disabled />
+
+                                    <datalist id="branchValues_${index}"
+                                              class="branch-value-list"></datalist>
+                                </div>
+
+                            </div>
+
+                        </div>
+
+                    </article>
+                `;
+            }
+
+
+            addQuestionButton.addEventListener(
+                "click",
+                () => {
+
+                    const index =
+                        container.querySelectorAll(
+                            ".ds-question-card"
+                        ).length;
+
+                    container.insertAdjacentHTML(
+                        "beforeend",
+                        createQuestion(index)
+                    );
+
+                    updateIndexes();
+                }
+            );
+
+
+            container.addEventListener(
+                "click",
+                event => {
+
+                    const target =
+                        event.target;
+
+                    if (!(target instanceof HTMLElement)) {
+                        return;
+                    }
+
+                    if (
+                        target.classList.contains(
+                            "remove-question-button"
+                        )
+                    ) {
+                        const cards =
+                            container.querySelectorAll(
+                                ".ds-question-card"
+                            );
+
+                        if (cards.length <= 1) {
+                            alert(
+                                "Ankette en az bir soru bulunmalıdır."
+                            );
+
+                            return;
+                        }
+
+                        target.closest(
+                            ".ds-question-card"
+                        )?.remove();
+
+                        updateIndexes();
+                        return;
+                    }
+
+                    if (
+                        target.classList.contains(
+                            "add-option-button"
+                        )
+                    ) {
+                        const card =
+                            target.closest(
+                                ".ds-question-card"
+                            );
+
+                        const options =
+                            card?.querySelector(
+                                ".options-container"
+                            );
+
+                        if (!card || !options) {
+                            return;
+                        }
+
+                        const questionIndex =
+                            Number(
+                                card.dataset.questionIndex
+                            );
+
+                        const optionIndex =
+                            options.querySelectorAll(
+                                ".option-row"
+                            ).length;
+
+                        options.insertAdjacentHTML(
+                            "beforeend",
+                            `
+                                <div class="ds-option-row option-row">
+
+                                    <input type="text"
+                                           name="Questions[${questionIndex}].Options[${optionIndex}]"
+                                           class="form-control"
+                                           placeholder="Seçenek ${optionIndex + 1}" />
+
+                                    <button type="button"
+                                            class="ds-remove-option remove-option-button">
+                                        ×
+                                    </button>
+
+                                </div>
+                            `
+                        );
+
+                        updateIndexes();
+                        return;
+                    }
+
+                    if (
+                        target.classList.contains(
+                            "remove-option-button"
+                        )
+                    ) {
+                        const card =
+                            target.closest(
+                                ".ds-question-card"
+                            );
+
+                        if (!card) {
+                            return;
+                        }
+
+                        const optionRows =
+                            card.querySelectorAll(
+                                ".option-row"
+                            );
+
+                        if (optionRows.length <= 2) {
+                            alert(
+                                "Seçenekli sorularda en az iki seçenek bulunmalıdır."
+                            );
+
+                            return;
+                        }
+
+                        target.closest(
+                            ".option-row"
+                        )?.remove();
+
+                        updateIndexes();
+                    }
+                }
+            );
+
+
+            container.addEventListener(
+                "change",
+                event => {
+
+                    const target =
+                        event.target;
+
+                    if (!(target instanceof HTMLElement)) {
+                        return;
+                    }
+
+                    const card =
+                        target.closest(
+                            ".ds-question-card"
+                        );
+
+                    if (!card) {
+                        return;
+                    }
+
+                    if (
+                        target.classList.contains(
+                            "question-type"
+                        )
+                    ) {
+                        updateQuestionType(card);
+                        refreshBranchSelectors();
+                    }
+
+                    if (
+                        target.classList.contains(
+                            "branch-mode-select"
+                        )
+                    ) {
+                        refreshConditionMode(card);
+                        refreshBranchSelectors();
+                    }
+
+                    if (
+                        target.classList.contains(
+                            "branch-parent-select"
+                        )
+                    ) {
+                        target.dataset.currentValue =
+                            target.value;
+
+                        refreshBranchValueSuggestions(card);
+                    }
+
+                    if (
+                        target.classList.contains(
+                            "branch-operator-select"
+                        )
+                    ) {
+                        target.dataset.currentValue =
+                            target.value;
+
+                        refreshBranchValueSuggestions(card);
+                    }
+
+                    if (
+                        target.classList.contains(
+                            "rating-max-select"
+                        )
+                    ) {
+                        refreshBranchSelectors();
+                    }
+                }
+            );
+
+
+            container.addEventListener(
+                "input",
+                event => {
+
+                    const target =
+                        event.target;
+
+                    if (!(target instanceof HTMLElement)) {
+                        return;
+                    }
+
+                    if (
+                        target.classList.contains(
+                            "question-text-input"
+                        ) ||
+                        target.closest(".options-container")
+                    ) {
+                        refreshBranchSelectors();
+                    }
+                }
+            );
+
+
+            if (startDate && endDate) {
+
+                startDate.addEventListener(
+                    "change",
+                    () => {
+
+                        endDate.min =
+                            startDate.value;
+
+                        if (
+                            endDate.value &&
+                            endDate.value <= startDate.value
+                        ) {
+                            endDate.value = "";
+                        }
+                    }
+                );
+            }
+
+
+            form?.addEventListener(
+                "submit",
+                event => {
+
+                    if (
+                        startDate &&
+                        endDate &&
+                        startDate.value &&
+                        endDate.value &&
+                        endDate.value <= startDate.value
+                    ) {
+                        event.preventDefault();
+
+                        alert(
+                            "Bitiş tarihi başlangıç tarihinden sonra olmalıdır."
+                        );
+
+                        return;
+                    }
+
+                    const cards =
+                        [...container.querySelectorAll(
+                            ".ds-question-card"
+                        )];
+
+                    for (
+                        let index = 0;
+                        index < cards.length;
+                        index++
+                    ) {
+                        const card =
+                            cards[index];
+
+                        const mode =
+                            card.querySelector(
+                                ".branch-mode-select"
+                            )?.value ?? "always";
+
+                        if (mode !== "conditional") {
+                            continue;
+                        }
+
+                        const parent =
+                            Number(
+                                card.querySelector(
+                                    ".branch-parent-select"
+                                )?.value ?? 0
+                            );
+
+                        const operator =
+                            card.querySelector(
+                                ".branch-operator-select"
+                            )?.value ?? "";
+
+                        const expected =
+                            card.querySelector(
+                                ".branch-value-input"
+                            )?.value?.trim() ?? "";
+
+                        if (parent <= 0) {
+                            event.preventDefault();
+
+                            alert(
+                                `Soru ${index + 1} için bağlı soruyu seçmelisin.`
+                            );
+
+                            return;
+                        }
+
+                        if (!operator) {
+                            event.preventDefault();
+
+                            alert(
+                                `Soru ${index + 1} için koşul türünü seçmelisin.`
+                            );
+
+                            return;
+                        }
+
+                        if (
+                            operator !== "8" &&
+                            operator !== "9" &&
+                            !expected
+                        ) {
+                            event.preventDefault();
+
+                            alert(
+                                `Soru ${index + 1} için koşul değerini belirtmelisin.`
+                            );
+
+                            return;
+                        }
+                    }
+                }
+            );
+
+
+            updateIndexes();
+
+        })();
+    </script>
+}

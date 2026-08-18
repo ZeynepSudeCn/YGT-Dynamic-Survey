@@ -1,0 +1,39 @@
+@{
+    ViewData["Title"] = "SuperAdmin Yetki Merkezi";
+}
+
+<div class="admin-simple-page superadmin-center">
+    <div class="admin-page-heading superadmin-heading">
+        <span class="dashboard-eyebrow">SUPERADMIN</span>
+        <h1>Yetki Merkezi</h1>
+        <p>Kullanıcı yetkilerini, sistem sağlığını ve kritik yönetim alanlarını tek noktadan denetle.</p>
+    </div>
+
+    <div class="superadmin-metrics">
+        <div class="superadmin-metric"><span>Toplam kullanıcı</span><strong>@ViewBag.TotalUsers</strong></div>
+        <div class="superadmin-metric"><span>Aktif kullanıcı</span><strong>@ViewBag.ActiveUsers</strong></div>
+        <div class="superadmin-metric"><span>Pasif kullanıcı</span><strong>@ViewBag.PassiveUsers</strong></div>
+        <div class="superadmin-metric attention"><span>Bekleyen yönetici</span><strong>@ViewBag.PendingAdmins</strong></div>
+        <div class="superadmin-metric"><span>Yönetici</span><strong>@ViewBag.AdminCount</strong></div>
+        <div class="superadmin-metric"><span>Anket / yanıt</span><strong>@ViewBag.TotalSurveys / @ViewBag.TotalResponses</strong></div>
+    </div>
+
+    <div class="admin-settings-grid superadmin-actions">
+        <section class="admin-settings-card">
+            <div class="admin-settings-icon">👥</div>
+            <div><h2>Rol ve Hesap Yönetimi</h2><p>Başvuruları onayla, yönetici yetkilerini kaldır ve hesapları aktif veya pasif yap.</p><a asp-action="Users" class="admin-modern-primary">Kullanıcıları Yönet</a></div>
+        </section>
+        <section class="admin-settings-card">
+            <div class="admin-settings-icon">🗂️</div>
+            <div><h2>Denetim Kayıtları</h2><p>Kritik kullanıcı ve yönetici işlemlerinin sistem kayıtlarını incele.</p><a asp-action="Logs" class="admin-modern-secondary">Kayıtları İncele</a></div>
+        </section>
+        <section class="admin-settings-card">
+            <div class="admin-settings-icon">🔔</div>
+            <div><h2>Toplu Bildirim</h2><p>Kullanıcılara site içi bildirim ve yapılandırılmışsa e-posta duyurusu gönder.</p><a asp-action="Notifications" class="admin-modern-secondary">Bildirim Oluştur</a></div>
+        </section>
+        <section class="admin-settings-card">
+            <div class="admin-settings-icon">⚙️</div>
+            <div><h2>Sistem Ayarları</h2><p>Yönetim araçlarına ve güvenlik seçeneklerine hızlıca ulaş.</p><a asp-action="Settings" class="admin-modern-secondary">Ayarlara Git</a></div>
+        </section>
+    </div>
+</div>

@@ -1,0 +1,237 @@
+@model YGT.DynamicSurvey.Models.ViewModels.Profile.ProfileViewModel
+
+@{
+    ViewData["Title"] = "Profil";
+}
+
+<div class="profile-page">
+
+    <div class="profile-header">
+
+        <span class="dashboard-eyebrow">
+            Hesap Ayarları
+        </span>
+
+        <h1>
+            Profilim
+        </h1>
+
+        <p>
+            Hesap bilgilerini görüntüleyebilir ve güncelleyebilirsin.
+        </p>
+
+    </div>
+
+
+    @if (TempData["ProfileSuccess"] is not null)
+    {
+        <div class="alert alert-success">
+            @TempData["ProfileSuccess"]
+        </div>
+    }
+
+
+    <div class="profile-grid">
+
+        <!-- ==========================================
+             PROFİL BİLGİLERİ
+        =========================================== -->
+
+        <div class="profile-card">
+
+            <div class="profile-card-header">
+
+                <div class="profile-avatar-large">
+                    👤
+                </div>
+
+                <div>
+
+                    <h2>
+                        @Model.FullName
+                    </h2>
+
+                    <p>
+                        @Model.Email
+                    </p>
+
+                </div>
+
+            </div>
+
+
+            <form asp-controller="Profile"
+                  asp-action="Index"
+                  method="post">
+
+                @Html.AntiForgeryToken()
+
+
+                <div asp-validation-summary="ModelOnly"
+                     class="text-danger mb-3">
+                </div>
+
+
+                <div class="survey-field">
+
+                    <label asp-for="FullName">
+                        Ad Soyad
+                    </label>
+
+                    <input asp-for="FullName"
+                           class="form-control" />
+
+                    <span asp-validation-for="FullName"
+                          class="text-danger">
+                    </span>
+
+                </div>
+
+
+                <div class="survey-field">
+
+                    <label asp-for="Email">
+                        E-posta
+                    </label>
+
+                    <input asp-for="Email"
+                           class="form-control"
+                           readonly />
+
+                    <small class="text-muted">
+                        E-posta değiştirme işlemi doğrulama gerektirdiği için
+                        ayrı bir adımda yapılacaktır.
+                    </small>
+
+                </div>
+
+
+                <div class="profile-info-row">
+
+                    <span>
+                        Hesap Durumu
+                    </span>
+
+                    @if (Model.IsActive)
+                    {
+                        <strong class="profile-status-active">
+                            Aktif
+                        </strong>
+                    }
+                    else
+                    {
+                        <strong class="profile-status-passive">
+                            Pasif
+                        </strong>
+                    }
+
+                </div>
+
+
+                <div class="profile-info-row">
+
+                    <span>
+                        Hesap Oluşturulma
+                    </span>
+
+                    <strong>
+                        @Model.CreatedAt
+                            .ToLocalTime()
+                            .ToString("dd.MM.yyyy")
+                    </strong>
+
+                </div>
+
+
+                <div class="profile-actions">
+
+                    <button type="submit"
+                            class="survey-submit-button">
+
+                        Değişiklikleri Kaydet
+
+                    </button>
+
+                </div>
+
+            </form>
+
+        </div>
+
+
+        <!-- ==========================================
+             GÜVENLİK
+        =========================================== -->
+
+        <div class="profile-card">
+
+            <h2>
+                Güvenlik
+            </h2>
+
+            <p class="text-muted">
+                Hesabının güvenlik ayarlarını yönet.
+            </p>
+
+
+            <div class="profile-security-box">
+
+                <div>
+
+                    <strong>
+                        Şifre
+                    </strong>
+
+                    <p>
+                        Hesap şifreni değiştirebilirsin.
+                    </p>
+
+                </div>
+
+
+                <button type="button"
+                        class="profile-secondary-button">
+
+                    Şifreyi Değiştir
+
+                </button>
+
+            </div>
+
+
+            <div class="profile-security-box">
+
+                <div>
+
+                    <strong>
+                        E-posta
+                    </strong>
+
+                    <p>
+                        @Model.Email
+                    </p>
+
+                </div>
+
+
+                <button type="button"
+                        class="profile-secondary-button">
+
+                    E-postayı Değiştir
+
+                </button>
+
+            </div>
+
+        </div>
+
+    </div>
+
+</div>
+
+
+@section Scripts {
+
+    <partial name="_ValidationScriptsPartial" />
+
+}

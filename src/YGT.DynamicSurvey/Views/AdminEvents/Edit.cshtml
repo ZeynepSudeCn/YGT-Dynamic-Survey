@@ -1,0 +1,17 @@
+@model YGT.DynamicSurvey.Models.Event
+@{ ViewData["Title"] = "Etkinliği Düzenle"; }
+<div class="page-heading"><span class="dashboard-eyebrow">Yönetim</span><h1>Etkinliği Düzenle</h1><p>Etkinliğin içeriğini, tarihlerini ve fotoğraflarını güncelle.</p></div>
+<form asp-action="Edit" asp-route-id="@Model.Id" method="post" enctype="multipart/form-data" class="form-card event-create-form">
+<input asp-for="Id" type="hidden"/><input asp-for="CreatedAt" type="hidden"/><div asp-validation-summary="ModelOnly" class="validation-box"></div>
+<div class="form-grid"><div><label asp-for="Title"></label><input asp-for="Title" class="form-control"/><span asp-validation-for="Title"></span></div><div><label asp-for="Category"></label><input asp-for="Category" class="form-control"/></div></div>
+<div><label asp-for="Summary"></label><textarea asp-for="Summary" class="form-control" rows="2"></textarea><span asp-validation-for="Summary"></span></div>
+<div><label asp-for="Description"></label><textarea asp-for="Description" class="form-control" rows="6"></textarea><span asp-validation-for="Description"></span></div>
+<div class="form-grid"><div><label asp-for="StartsAt"></label><input asp-for="StartsAt" type="datetime-local" class="form-control"/></div><div><label asp-for="EndsAt"></label><input asp-for="EndsAt" type="datetime-local" class="form-control"/><span asp-validation-for="EndsAt"></span></div></div>
+<div><label asp-for="Location"></label><input asp-for="Location" class="form-control"/></div>
+<div><label>Yeni fotoğraflar ekle</label><input type="file" name="photos" class="form-control" accept="image/jpeg,image/png,image/webp" multiple/><small class="profile-help-text">Seçilen fotoğraflar mevcut galeriye eklenir.</small><span class="field-validation-error">@Html.ValidationMessage("photos")</span></div>
+<div><label asp-for="ImageUrl">Mevcut fotoğraf adresleri</label><textarea asp-for="ImageUrl" class="form-control" rows="4"></textarea><small class="profile-help-text">Bir görseli kaldırmak için adresini bu listeden sil.</small></div>
+<div><label asp-for="InstagramUrl"></label><input asp-for="InstagramUrl" class="form-control"/></div>
+<label class="event-publish-check"><input asp-for="IsPublished"/> Kullanıcılara göster</label>
+<div class="event-form-actions"><a asp-action="Index" class="event-cancel-button">Vazgeç</a><button class="profile-primary-button" type="submit">Değişiklikleri Kaydet</button></div>
+</form>
+@section Scripts { <partial name="_ValidationScriptsPartial" /> }

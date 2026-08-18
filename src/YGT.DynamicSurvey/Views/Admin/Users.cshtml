@@ -1,0 +1,294 @@
+@model YGT.DynamicSurvey.Models.ViewModels.Admin.AdminUsersViewModel
+
+@using Microsoft.AspNetCore.Identity
+@using YGT.DynamicSurvey.Models.Identity
+
+@inject UserManager<ApplicationUser> UserManager
+
+@{
+    ViewData["Title"] = "Kullanıcılar";
+    var canManageAdmins = User.IsInRole("Admin") || User.IsInRole("SuperAdmin");
+}
+
+<div class="admin-users-page">
+
+    <div class="admin-page-heading">
+        <span class="dashboard-eyebrow">KULLANICI YÖNETİMİ</span>
+        <h1>Kullanıcılar</h1>
+        <p>Sisteme kayıtlı kullanıcıları görüntüle, filtrele ve yönet.</p>
+    </div>
+
+    @if (TempData["AdminSuccess"] is not null)
+    {
+        <div class="alert alert-success">@TempData["AdminSuccess"]</div>
+    }
+
+    @if (TempData["AdminError"] is not null)
+    {
+        <div class="alert alert-danger">@TempData["AdminError"]</div>
+    }
+
+    <div class="admin-user-stats">
+        <div class="admin-user-stat-card">
+            <div class="admin-user-stat-icon blue">👥</div>
+            <div><span>Toplam Kullanıcı</span><strong>@Model.TotalUsers</strong></div>
+        </div>
+        <div class="admin-user-stat-card">
+            <div class="admin-user-stat-icon green">✓</div>
+            <div><span>Aktif</span><strong>@Model.ActiveUsers</strong></div>
+        </div>
+        <div class="admin-user-stat-card">
+            <div class="admin-user-stat-icon red">Ⅱ</div>
+            <div><span>Pasif</span><strong>@Model.PassiveUsers</strong></div>
+        </div>
+        <div class="admin-user-stat-card">
+            <div class="admin-user-stat-icon orange">⌛</div>
+            <div><span>Bekleyen Yönetici</span><strong>@Model.PendingAdminRequests</strong></div>
+        </div>
+    </div>
+
+    <div class="admin-user-filter-card">
+        <div class="admin-user-filter-header">
+            <div>
+                <strong>Kullanıcıları Filtrele</strong>
+                <span>Arama, hesap durumu ve kullanıcı rolüne göre filtreleyebilirsin.</span>
+            </div>
+            <button type="button" id="clearUserFilters" class="admin-filter-clear">Filtreleri Temizle</button>
+        </div>
+
+        <div class="admin-user-filter-grid">
+            <div class="admin-filter-field admin-filter-search">
+                <label>Ara</label>
+                <div class="admin-filter-input-wrap">
+                    <span>🔎</span>
+                    <input type="search" id="userSearch" placeholder="Ad veya e-posta ara..." />
+                </div>
+            </div>
+
+            <div class="admin-filter-field">
+                <label>Hesap Durumu</label>
+                <select id="userStatusFilter">
+                    <option value="">Tüm Durumlar</option>
+                    <option value="active">Aktif</option>
+                    <option value="passive">Pasif</option>
+                </select>
+            </div>
+
+            <div class="admin-filter-field">
+                <label>Kullanıcı Rolü</label>
+                <select id="userRoleFilter">
+                    <option value="">Tüm Roller</option>
+                    <option value="user">Kullanıcı</option>
+                    <option value="admin">Yönetici</option>
+                    <option value="superadmin">SuperAdmin</option>
+                    <option value="pending">Onay Bekleyen</option>
+                    <option value="rejected">Reddedilen</option>
+                </select>
+            </div>
+        </div>
+
+        <div class="admin-filter-result-info">
+            <span id="userResultCount">@Model.Users.Count kullanıcı gösteriliyor</span>
+        </div>
+    </div>
+
+    <div class="admin-users-table-wrapper">
+        <table class="admin-users-table">
+            <thead>
+                <tr>
+                    <th>Kullanıcı</th>
+                    <th>E-posta</th>
+                    <th>Kayıt Tarihi</th>
+                    <th>Hesap Durumu</th>
+                    <th>Rol</th>
+                    <th>İşlemler</th>
+                </tr>
+            </thead>
+            <tbody>
+                @foreach (var user in Model.Users)
+                {
+                    var userIsAdmin = await UserManager.IsInRoleAsync(user, "Admin");
+                    var userIsSuperAdmin = await UserManager.IsInRoleAsync(user, "SuperAdmin");
+                    var isCurrentUser = UserManager.GetUserId(User) == user.Id;
+
+                    var roleValue = userIsSuperAdmin
+                        ? "superadmin"
+                        : userIsAdmin
+                            ? "admin"
+                            : user.RequestedAdminAccess && user.AdminRequestStatus == "Pending"
+                                ? "pending"
+                                : user.RequestedAdminAccess && user.AdminRequestStatus == "Rejected"
+                                    ? "rejected"
+                                    : "user";
+
+                    var statusValue = user.IsActive ? "active" : "passive";
+
+                    <tr class="admin-user-row"
+                        data-name="@((user.FullName ?? "").ToLowerInvariant())"
+                        data-email="@((user.Email ?? "").ToLowerInvariant())"
+                        data-status="@statusValue"
+                        data-role="@roleValue">
+
+                        <td>
+                            <div class="admin-user-cell">
+                                <div class="admin-user-avatar">
+                                    @(string.IsNullOrWhiteSpace(user.FullName) ? "?" : user.FullName.Trim().Substring(0, 1).ToUpperInvariant())
+                                </div>
+                                <div class="admin-user-name">
+                                    <strong>@user.FullName</strong>
+                                    <span>Kullanıcı hesabı</span>
+                                </div>
+                            </div>
+                        </td>
+
+                        <td><div class="admin-user-email">@user.Email</div></td>
+
+                        <td>
+                            <div class="admin-user-date">
+                                <strong>@(user.CreatedAt.ToLocalTime().ToString("dd.MM.yyyy"))</strong>
+                                <span>@(user.CreatedAt.ToLocalTime().ToString("HH:mm"))</span>
+                            </div>
+                        </td>
+
+                        <td>
+                            @if (user.IsActive)
+                            {
+                                <span class="admin-status active"><span class="admin-status-dot"></span>Aktif</span>
+                            }
+                            else
+                            {
+                                <span class="admin-status passive"><span class="admin-status-dot"></span>Pasif</span>
+                            }
+                        </td>
+
+                        <td>
+                            @if (userIsSuperAdmin)
+                            {
+                                <span class="admin-role super-admin">🛡 SuperAdmin</span>
+                            }
+                            else if (userIsAdmin)
+                            {
+                                <span class="admin-role admin">👤 Yönetici</span>
+                            }
+                            else if (user.RequestedAdminAccess && user.AdminRequestStatus == "Pending")
+                            {
+                                <span class="admin-role pending">⌛ Onay Bekliyor</span>
+                            }
+                            else if (user.RequestedAdminAccess && user.AdminRequestStatus == "Rejected")
+                            {
+                                <span class="admin-role rejected">✕ Reddedildi</span>
+                            }
+                            else
+                            {
+                                <span class="admin-role user">Kullanıcı</span>
+                            }
+                        </td>
+
+                        <td>
+                            <div class="admin-user-actions">
+
+                                @if (canManageAdmins && user.RequestedAdminAccess && user.AdminRequestStatus == "Pending")
+                                {
+                                    <form asp-controller="Admin" asp-action="ApproveAdmin" method="post" class="m-0">
+                                        @Html.AntiForgeryToken()
+                                        <input type="hidden" name="id" value="@user.Id" />
+                                        <button type="submit" class="admin-action-icon-button approve" title="Yönetici olarak onayla" aria-label="Yönetici olarak onayla">✓</button>
+                                    </form>
+
+                                    <form asp-controller="Admin" asp-action="RejectAdmin" method="post" class="m-0">
+                                        @Html.AntiForgeryToken()
+                                        <input type="hidden" name="id" value="@user.Id" />
+                                        <button type="submit" class="admin-action-icon-button reject" title="Başvuruyu reddet" aria-label="Başvuruyu reddet">✕</button>
+                                    </form>
+                                }
+
+                                @if (canManageAdmins && userIsAdmin && !userIsSuperAdmin && !isCurrentUser)
+                                {
+                                    <form asp-controller="Admin" asp-action="RemoveAdmin" method="post" class="m-0">
+                                        @Html.AntiForgeryToken()
+                                        <input type="hidden" name="id" value="@user.Id" />
+                                        <button type="submit" class="admin-action-button reject">Yöneticilikten Çıkar</button>
+                                    </form>
+                                }
+
+                                @if (canManageAdmins && !userIsSuperAdmin && !isCurrentUser)
+                                {
+                                    <form asp-controller="Admin" asp-action="ToggleUserStatus" method="post" class="m-0">
+                                        @Html.AntiForgeryToken()
+                                        <input type="hidden" name="id" value="@user.Id" />
+                                        <button type="submit" class="admin-action-button @(user.IsActive ? "passive-action" : "activate-action")">
+                                            @(user.IsActive ? "Pasif Yap" : "Aktif Yap")
+                                        </button>
+                                    </form>
+                                }
+
+                                @if (userIsSuperAdmin || isCurrentUser)
+                                {
+                                    <span class="admin-no-action">—</span>
+                                }
+                            </div>
+                        </td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+
+        <div id="adminUsersNoResult" class="admin-users-no-result" style="display:none;">
+            <div>🔎</div>
+            <h3>Kullanıcı bulunamadı</h3>
+            <p>Seçtiğin filtrelere uygun bir kullanıcı bulunmuyor.</p>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+<script>
+(() => {
+    const search = document.getElementById("userSearch");
+    const statusFilter = document.getElementById("userStatusFilter");
+    const roleFilter = document.getElementById("userRoleFilter");
+    const clearButton = document.getElementById("clearUserFilters");
+    const rows = [...document.querySelectorAll(".admin-user-row")];
+    const noResult = document.getElementById("adminUsersNoResult");
+    const resultCount = document.getElementById("userResultCount");
+
+    function filterUsers() {
+        const searchValue = search.value.trim().toLocaleLowerCase("tr-TR");
+        const statusValue = statusFilter.value;
+        const roleValue = roleFilter.value;
+        let visibleCount = 0;
+
+        rows.forEach(row => {
+            const name = row.dataset.name ?? "";
+            const email = row.dataset.email ?? "";
+            const status = row.dataset.status ?? "";
+            const role = row.dataset.role ?? "";
+
+            const visible =
+                (!searchValue || name.includes(searchValue) || email.includes(searchValue)) &&
+                (!statusValue || status === statusValue) &&
+                (!roleValue || role === roleValue);
+
+            row.style.display = visible ? "" : "none";
+            if (visible) visibleCount++;
+        });
+
+        resultCount.textContent = `${visibleCount} kullanıcı gösteriliyor`;
+        noResult.style.display = visibleCount === 0 ? "block" : "none";
+    }
+
+    search.addEventListener("input", filterUsers);
+    statusFilter.addEventListener("change", filterUsers);
+    roleFilter.addEventListener("change", filterUsers);
+
+    clearButton.addEventListener("click", () => {
+        search.value = "";
+        statusFilter.value = "";
+        roleFilter.value = "";
+        filterUsers();
+    });
+
+    filterUsers();
+})();
+</script>
+}

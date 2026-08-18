@@ -1,0 +1,14 @@
+@model YGT.DynamicSurvey.Models.Event
+@{ ViewData["Title"] = "Yeni Etkinlik"; }
+<div class="page-heading"><span class="dashboard-eyebrow">Yönetim</span><h1>Yeni Etkinlik</h1><p>Etkinlik kaydedildikten sonra kullanıcılara site bildirimi gönderilir.</p></div>
+<form asp-action="Create" method="post" enctype="multipart/form-data" class="form-card event-create-form"><div asp-validation-summary="ModelOnly" class="validation-box"></div>
+@foreach(var field in new[]{"Title","Category","Summary","Description","StartsAt","EndsAt","Location","ImageUrl","InstagramUrl"}){}
+<div class="form-grid"><div><label asp-for="Title"></label><input asp-for="Title" class="form-control"/><span asp-validation-for="Title"></span></div><div><label asp-for="Category"></label><input asp-for="Category" class="form-control"/></div></div>
+<div><label asp-for="Summary"></label><textarea asp-for="Summary" class="form-control" rows="2"></textarea><span asp-validation-for="Summary"></span></div>
+<div><label asp-for="Description"></label><textarea asp-for="Description" class="form-control" rows="6"></textarea><span asp-validation-for="Description"></span></div>
+<div class="form-grid"><div><label asp-for="StartsAt"></label><input asp-for="StartsAt" type="datetime-local" class="form-control"/></div><div><label asp-for="EndsAt"></label><input asp-for="EndsAt" type="datetime-local" class="form-control"/><span asp-validation-for="EndsAt"></span></div></div>
+<div><label asp-for="Location"></label><input asp-for="Location" class="form-control"/></div>
+<div><label>Etkinlik Fotoğrafları</label><input type="file" name="photos" class="form-control" accept="image/jpeg,image/png,image/webp" multiple/><small class="profile-help-text">Birden fazla fotoğraf seçebilirsin. İlk fotoğraf kapak görseli olur.</small><span class="field-validation-error">@Html.ValidationMessage("photos")</span></div>
+<div><label asp-for="ImageUrl">Harici fotoğraf adresleri (isteğe bağlı)</label><textarea asp-for="ImageUrl" class="form-control" rows="3" placeholder="Her satıra bir fotoğraf adresi"></textarea></div><div><label asp-for="InstagramUrl"></label><input asp-for="InstagramUrl" class="form-control"/></div>
+<button class="profile-primary-button" type="submit">Etkinliği Yayımla</button></form>
+@section Scripts { <partial name="_ValidationScriptsPartial" /> }

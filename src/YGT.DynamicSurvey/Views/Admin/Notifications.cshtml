@@ -1,0 +1,45 @@
+@model List<YGT.DynamicSurvey.Models.Notification>
+@{
+    ViewData["Title"] = "Bildirimler";
+}
+
+<div class="admin-simple-page">
+
+    <div class="admin-page-heading">
+        <span class="dashboard-eyebrow">BİLDİRİM MERKEZİ</span>
+        <h1>Bildirimler</h1>
+        <p>Yönetim panelindeki önemli gelişmeler burada gösterilecek.</p>
+    </div>
+
+    @if (Model.Count == 0)
+    {
+    <div class="admin-empty-modern">
+        <div class="admin-empty-modern-icon">🔔</div>
+        <h2>Şu anda yeni bildirim yok</h2>
+        <p>
+            Yönetici başvuruları, anket durum değişiklikleri ve önemli sistem
+            olayları daha sonra bu alanda listelenecek.
+        </p>
+
+        <a asp-controller="Admin"
+           asp-action="Users"
+           class="admin-modern-primary">
+            Yönetici Başvurularını Kontrol Et
+        </a>
+    </div>
+    }
+    else
+    {
+        <div class="admin-notification-list">
+            @foreach (var item in Model)
+            {
+                <a href="@item.Url" class="admin-notification-card">
+                    <span class="admin-notification-icon">🛡️</span>
+                    <span><strong>@item.Title</strong><small>@item.Message</small><time>@item.CreatedAt.ToLocalTime().ToString("dd.MM.yyyy HH:mm")</time></span>
+                    <b>İncele →</b>
+                </a>
+            }
+        </div>
+    }
+
+</div>

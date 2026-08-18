@@ -1,0 +1,78 @@
+@using YGT.DynamicSurvey.Models
+@{
+    ViewData["Title"] = "Genel Bakış";
+    var waiting = ViewBag.WaitingSurveys as List<Survey> ?? new();
+    var nextEvent = ViewBag.NextEvent as Event;
+    var lastResponse = ViewBag.LastResponse as SurveyResponse;
+    var fullName = ViewBag.FullName as string ?? "Kullanıcı";
+    var firstName = fullName.Split(' ', StringSplitOptions.RemoveEmptyEntries).FirstOrDefault() ?? "Kullanıcı";
+}
+
+<div class="user-overview">
+    <header class="user-overview-hero">
+        <span class="dashboard-eyebrow">YGT KKU TOPLULUK PANELİ</span>
+        <h1>Hoş geldin, @firstName 👋</h1>
+        <p>Topluluktaki anketleri, etkinlikleri ve seni bekleyen işlemleri buradan takip et.</p>
+    </header>
+
+    <div class="user-overview-stats">
+        <a asp-controller="Participation" asp-action="OpenSurveys"><span>Cevap bekliyor</span><strong>@waiting.Count</strong></a>
+        <a asp-controller="Announcement" asp-action="Index"><span>Yaklaşan etkinlik</span><strong>@ViewBag.UpcomingEventCount</strong></a>
+        <a asp-controller="Participation" asp-action="History"><span>Katıldığın anket</span><strong>@ViewBag.ParticipatedSurveyCount</strong></a>
+        <a asp-controller="Announcement" asp-action="Index"><span>Okunmamış bildirim</span><strong>@ViewBag.UnreadNotificationCount</strong></a>
+    </div>
+
+    <section class="overview-section">
+        <div class="overview-title"><div><span>AKSİYON MERKEZİ</span><h2>Seni Bekleyenler</h2></div><small>Tamamlaman gereken işlemler</small></div>
+        @if (!waiting.Any())
+        {
+            <div class="overview-empty">🎉 <strong>Şu anda seni bekleyen bir işlem yok.</strong></div>
+        }
+        else
+        {
+            <div class="waiting-list">
+                @foreach (var survey in waiting)
+                {
+                    <article><div><span>📋 Anket</span><strong>@survey.Title</strong><small>Henüz cevaplamadın</small></div><a asp-controller="Survey" asp-action="Join" asp-route-code="@survey.Code">Ankete Git →</a></article>
+                }
+            </div>
+        }
+    </section>
+
+    <div class="overview-two-column">
+        <section class="overview-section next-event-card">
+            <div class="overview-title"><div><span>TAKVİM</span><h2>Yaklaşan En Yakın Etkinlik</h2></div></div>
+            @if (nextEvent is null)
+            {
+                <div class="overview-empty">📅 Planlanmış yeni bir etkinlik bulunmuyor.</div>
+            }
+            else
+            {
+                var remainingDays = Math.Max(1, (int)Math.Ceiling((nextEvent.StartsAt - DateTime.Now).TotalDays));
+                <div class="next-event-content"><span class="event-category">@nextEvent.Category</span><h3>@nextEvent.Title</h3><p>📅 @nextEvent.StartsAt.ToString("dd MMMM yyyy, HH:mm")</p><p>⏳ Etkinliğe @remainingDays gün kaldı</p><a asp-controller="Announcement" asp-action="Detail" asp-route-id="@nextEvent.Id">Duyuruyu Gör →</a></div>
+            }
+        </section>
+
+        <section class="overview-section last-response-card">
+            <div class="overview-title"><div><span>SON AKTİVİTE</span><h2>Son Katıldığın Anket</h2></div></div>
+            @if (lastResponse is null)
+            {
+                <div class="overview-empty">Henüz tamamladığın bir anket yok.</div>
+            }
+            else
+            {
+                <div class="last-response-content"><span>✅ Cevabın başarıyla kaydedildi</span><h3>@lastResponse.Survey.Title</h3><p>@lastResponse.SubmittedAt.ToLocalTime().ToString("dd MMMM yyyy, HH:mm")</p></div>
+            }
+        </section>
+    </div>
+
+    <section class="overview-section quick-actions-section">
+        <div class="overview-title"><div><span>KISAYOLLAR</span><h2>Hızlı İşlemler</h2></div></div>
+        <div class="overview-quick-actions">
+            <a asp-controller="Home" asp-action="Index" asp-fragment="surveyJoin">🔢 <strong>Kodla Ankete Katıl</strong></a>
+            <a asp-controller="Home" asp-action="Index" asp-fragment="qrScanner">📷 <strong>QR Tara</strong></a>
+            <a asp-controller="Announcement" asp-action="Index">📢 <strong>Duyuruları Gör</strong></a>
+        </div>
+    </section>
+
+</div>

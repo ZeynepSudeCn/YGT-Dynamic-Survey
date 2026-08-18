@@ -1,0 +1,8 @@
+@model List<YGT.DynamicSurvey.Models.Event>
+@{ ViewData["Title"] = "Etkinlik Yönetimi"; }
+<div class="page-heading"><span class="dashboard-eyebrow">Yönetim</span><h1>Etkinlikler</h1><p>Etkinlikleri ve kullanıcı duyurularını buradan yönet.</p></div>
+@if(TempData["Success"] is not null){<div class="alert alert-success">@TempData["Success"]</div>}
+<p><a asp-action="Create" class="profile-primary-button">Yeni Etkinlik Oluştur</a></p>
+<div class="data-card event-management-table"><div class="table-responsive"><table class="table"><thead><tr><th>Başlık</th><th>Başlangıç</th><th>Bitiş</th><th>Durum</th><th class="text-end">İşlemler</th></tr></thead><tbody>
+@foreach(var item in Model){<tr><td><strong>@item.Title</strong></td><td>@item.StartsAt.ToString("dd.MM.yyyy HH:mm")</td><td>@item.EndsAt.ToString("dd.MM.yyyy HH:mm")</td><td>@(item.StartsAt>DateTime.Now?"Yaklaşan":item.EndsAt<DateTime.Now?"Geçmiş":"Yayında")</td><td><div class="event-row-actions"><a asp-action="Edit" asp-route-id="@item.Id" class="event-edit-button">Düzenle</a><form asp-action="Delete" asp-route-id="@item.Id" method="post" onsubmit="return confirm('Bu etkinlik ve bağlı bildirimleri kalıcı olarak silinsin mi?');"><button type="submit" class="event-delete-button">Sil</button></form></div></td></tr>}
+</tbody></table></div></div>

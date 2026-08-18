@@ -1,0 +1,36 @@
+@model YGT.DynamicSurvey.Models.ViewModels.AnnouncementViewModel
+@{ ViewData["Title"] = "Duyurular ve Etkinlikler"; }
+
+<div class="page-heading">
+    <span class="dashboard-eyebrow">YGT KKU</span>
+    <h1>Duyurular ve Etkinlikler</h1>
+    <p>Topluluğun güncel etkinliklerini, yaklaşan buluşmalarını ve değerlendirme anketlerini takip et.</p>
+</div>
+
+@if (Model.Featured.Any())
+{
+    <div class="event-featured-heading">
+        <span class="dashboard-eyebrow">DUYURULAR</span>
+        <h2>Şunlara Göz At</h2>
+        <p>Topluluğumuzun son etkinliklerinden öne çıkan anlar.</p>
+    </div>
+    <section class="event-slider" data-event-slider>
+        <div class="event-slider-track">
+            @foreach (var item in Model.Featured)
+            {
+                <a class="event-slide" asp-action="Detail" asp-route-id="@item.Id">
+                    <img src="@(item.ImageUrls.FirstOrDefault() ?? Url.Content("~/images/ygt-logo-new.png"))" alt="@item.Title" loading="lazy" />
+                    <div class="event-slide-overlay">
+                        <span>@item.Category</span><h2>@item.Title</h2><p>@item.Summary</p>
+                        <div class="event-slide-caption"><time>@item.StartsAt.ToString("dd.MM.yyyy")</time>@if(!string.IsNullOrWhiteSpace(item.Location)){<small>📍 @item.Location</small>}@if(item.ImageUrls.Count > 1){<small>＋ @item.ImageUrls.Count fotoğraf</small>}</div>
+                    </div>
+                </a>
+            }
+        </div>
+        <button type="button" class="slider-arrow prev" aria-label="Önceki">‹</button>
+        <button type="button" class="slider-arrow next" aria-label="Sonraki">›</button>
+    </section>
+}
+
+@await Html.PartialAsync("_EventSection", ("Şu Anda Yayında", "Şu an gerçekleşen etkinlikler", Model.Live, "live"))
+@await Html.PartialAsync("_EventSection", ("Yaklaşan Etkinlikler", "Takvimine ekleyebileceğin etkinlikler", Model.Upcoming, "upcoming"))

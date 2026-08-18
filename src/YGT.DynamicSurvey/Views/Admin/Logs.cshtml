@@ -1,0 +1,163 @@
+@model YGT.DynamicSurvey.Models.ViewModels.Admin.SystemLogsViewModel
+
+@{
+    ViewData["Title"] = "Sistem Kayıtları";
+}
+
+<div class="system-logs-page">
+    <div class="admin-page-heading">
+        <span class="dashboard-eyebrow">SİSTEM TAKİBİ</span>
+        <h1>Sistem Kayıtları</h1>
+        <p>Giriş, kullanıcı, yönetici ve anket işlemlerini tek ekrandan takip et.</p>
+    </div>
+
+    <div class="system-log-stats">
+        <div class="system-log-stat-card"><span>📚 Toplam Kayıt</span><strong>@Model.TotalLogs</strong></div>
+        <div class="system-log-stat-card"><span>🕒 Bugün</span><strong>@Model.TodayLogs</strong></div>
+        <div class="system-log-stat-card"><span>👤 Kullanıcı</span><strong>@Model.UserLogs</strong></div>
+        <div class="system-log-stat-card"><span>📋 Anket</span><strong>@Model.SurveyLogs</strong></div>
+        <div class="system-log-stat-card"><span>🛡 Yönetici</span><strong>@Model.AdminLogs</strong></div>
+    </div>
+
+    <div class="system-log-filter-card">
+        <div class="system-log-filter-heading">
+            <div>
+                <strong>Kayıtları Filtrele</strong>
+                <span>Filtreler anında uygulanır.</span>
+            </div>
+            <button type="button" id="clearLogFilters" class="system-log-clear">Filtreleri Temizle</button>
+        </div>
+
+        <div class="system-log-filter system-log-filter-responsive">
+            <div class="system-log-search-wrap">
+                <span>🔎</span>
+                <input type="search" id="logSearch" placeholder="İşlem, açıklama, ad veya e-posta ara..." />
+            </div>
+
+            <select id="logCategoryFilter">
+                <option value="">Tüm Kategoriler</option>
+                <option value="Authentication">Giriş / Güvenlik</option>
+                <option value="Survey">Anket</option>
+                <option value="Admin">Yönetici</option>
+                <option value="User">Kullanıcı</option>
+                <option value="System">Sistem</option>
+            </select>
+
+            <span id="logResultCount" class="system-log-result-count">@Model.Logs.Count kayıt</span>
+        </div>
+    </div>
+
+    <div class="system-log-card">
+        <div class="system-log-table-wrapper">
+            <table class="system-log-table">
+                <thead>
+                    <tr>
+                        <th>Tarih / Saat</th>
+                        <th>Kategori</th>
+                        <th>İşlem</th>
+                        <th>Açıklama</th>
+                        <th>Kullanıcı</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach (var log in Model.Logs)
+                    {
+                        var categoryClass = log.Category switch
+                        {
+                            "Admin" => "admin",
+                            "Survey" => "survey",
+                            "User" => "user",
+                            "Authentication" => "auth",
+                            _ => "system"
+                        };
+
+                        <tr class="system-log-row"
+                            data-category="@log.Category"
+                            data-search="@($"{log.Action} {log.Description} {log.UserFullName} {log.UserEmail}".ToLowerInvariant())">
+                            <td>
+                                <div class="system-log-date">
+                                    <strong>@(log.CreatedAt.ToLocalTime().ToString("dd.MM.yyyy"))</strong>
+                                    <span>@(log.CreatedAt.ToLocalTime().ToString("HH:mm:ss"))</span>
+                                </div>
+                            </td>
+                            <td>
+                                <span class="system-log-category @categoryClass">
+                                    @switch (log.Category)
+                                    {
+                                        case "Admin": <text>🛡 Yönetici</text>; break;
+                                        case "Survey": <text>📋 Anket</text>; break;
+                                        case "User": <text>👤 Kullanıcı</text>; break;
+                                        case "Authentication": <text>🔐 Güvenlik</text>; break;
+                                        default: <text>⚙ Sistem</text>; break;
+                                    }
+                                </span>
+                            </td>
+                            <td><strong>@log.Action</strong></td>
+                            <td><span class="system-log-description">@log.Description</span></td>
+                            <td>
+                                @if (!string.IsNullOrWhiteSpace(log.UserFullName))
+                                {
+                                    <div class="system-log-user">
+                                        <strong>@log.UserFullName</strong>
+                                        <small>@log.UserEmail</small>
+                                    </div>
+                                }
+                                else
+                                {
+                                    <span>Sistem</span>
+                                }
+                            </td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+
+        <div id="systemLogsNoResult" class="system-log-empty" style="display:none;">
+            <div>🔎</div>
+            <h3>Kayıt bulunamadı</h3>
+            <p>Seçtiğin filtrelere uygun bir kayıt yok.</p>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+<script>
+(() => {
+    const search = document.getElementById("logSearch");
+    const category = document.getElementById("logCategoryFilter");
+    const clear = document.getElementById("clearLogFilters");
+    const rows = [...document.querySelectorAll(".system-log-row")];
+    const count = document.getElementById("logResultCount");
+    const noResult = document.getElementById("systemLogsNoResult");
+
+    function applyFilters() {
+        const searchValue = search.value.trim().toLocaleLowerCase("tr-TR");
+        const categoryValue = category.value;
+        let visible = 0;
+
+        rows.forEach(row => {
+            const text = (row.dataset.search ?? "").toLocaleLowerCase("tr-TR");
+            const rowCategory = row.dataset.category ?? "";
+            const show = (!searchValue || text.includes(searchValue)) &&
+                         (!categoryValue || rowCategory === categoryValue);
+            row.style.display = show ? "" : "none";
+            if (show) visible++;
+        });
+
+        count.textContent = `${visible} kayıt`;
+        noResult.style.display = visible === 0 ? "block" : "none";
+    }
+
+    search.addEventListener("input", applyFilters);
+    category.addEventListener("change", applyFilters);
+    clear.addEventListener("click", () => {
+        search.value = "";
+        category.value = "";
+        applyFilters();
+    });
+
+    applyFilters();
+})();
+</script>
+}

@@ -1,0 +1,879 @@
+@model YGT.DynamicSurvey.Models.Survey
+
+@{
+    ViewData["Title"] = "Anket Hazır";
+
+    var surveyUrl =
+        $"{Context.Request.Scheme}://{Context.Request.Host}/Survey/Join?code={Model.Code}";
+}
+
+<style>
+    #surveyCreatedPage {
+        width: 100%;
+        max-width: 940px;
+        margin: 0 auto;
+        padding: 34px 20px 60px;
+    }
+
+    #surveyCreatedPage * {
+        box-sizing: border-box;
+    }
+
+    .created-card {
+        overflow: hidden;
+        padding: 36px;
+        border: 1px solid #e4e7ec;
+        border-radius: 22px;
+        background:
+            radial-gradient(
+                circle at 100% 0%,
+                rgba(23, 105, 224, .09),
+                transparent 33%
+            ),
+            #ffffff;
+        box-shadow: 0 18px 50px rgba(16, 24, 40, .08);
+    }
+
+    .created-success-icon {
+        width: 66px;
+        height: 66px;
+        display: grid;
+        place-items: center;
+        margin: 0 auto 14px;
+        border-radius: 50%;
+        background: #ecfdf3;
+        color: #067647;
+        font-size: 2rem;
+        font-weight: 900;
+    }
+
+    .created-title {
+        margin: 0;
+        color: #101828;
+        text-align: center;
+        font-size: 2rem;
+        letter-spacing: -.025em;
+    }
+
+    .created-subtitle {
+        max-width: 680px;
+        margin: 10px auto 24px;
+        color: #667085;
+        text-align: center;
+        line-height: 1.65;
+    }
+
+    .created-code-box {
+        max-width: 440px;
+        margin: 0 auto 22px;
+        padding: 20px;
+        border: 1px solid #abefc6;
+        border-radius: 16px;
+        background: #f0fdf4;
+        text-align: center;
+    }
+
+    .created-code-label {
+        display: block;
+        margin-bottom: 6px;
+        color: #067647;
+        font-size: .72rem;
+        font-weight: 850;
+        letter-spacing: .1em;
+    }
+
+    .created-code-value {
+        display: block;
+        color: #101828;
+        font-size: 2.45rem;
+        font-weight: 850;
+        letter-spacing: .16em;
+    }
+
+    /* =====================================================
+       QR KOD ALANI
+    ====================================================== */
+
+    .created-qr-card {
+        margin: 0 auto 22px;
+        padding: 24px;
+        border: 1px solid #dbe3ef;
+        border-radius: 18px;
+        background: #f8fbff;
+    }
+
+    .created-qr-heading {
+        margin: 0 0 6px;
+        color: #101828;
+        text-align: center;
+        font-size: 1.15rem;
+        font-weight: 850;
+    }
+
+    .created-qr-description {
+        max-width: 590px;
+        margin: 0 auto 18px;
+        color: #667085;
+        text-align: center;
+        font-size: .8rem;
+        line-height: 1.55;
+    }
+
+    .created-qr-layout {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 28px;
+        flex-wrap: wrap;
+    }
+
+    .created-qr-box {
+        width: 220px;
+        height: 220px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        padding: 15px;
+        overflow: hidden;
+        border: 1px solid #eaecf0;
+        border-radius: 16px;
+        background: #ffffff;
+        box-shadow: 0 8px 24px rgba(16, 24, 40, .08);
+    }
+
+    #surveyQrCode {
+        width: 190px;
+        height: 190px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        overflow: hidden;
+    }
+
+    #surveyQrCode canvas {
+        width: 190px;
+        height: 190px;
+        max-width: 100%;
+        max-height: 100%;
+        display: block;
+    }
+
+    #surveyQrCode img {
+        max-width: 190px;
+        max-height: 190px;
+        object-fit: contain;
+    }
+
+    .created-qr-loading {
+        color: #667085;
+        text-align: center;
+        font-size: .78rem;
+        line-height: 1.5;
+    }
+
+    .created-qr-side {
+        width: min(100%, 300px);
+    }
+
+    .created-qr-side strong {
+        display: block;
+        margin-bottom: 7px;
+        color: #101828;
+        font-size: 1rem;
+    }
+
+    .created-qr-side p {
+        margin: 0 0 14px;
+        color: #667085;
+        font-size: .78rem;
+        line-height: 1.55;
+    }
+
+    .created-download-button {
+        min-height: 42px;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        gap: 7px;
+        padding: 0 15px;
+        border: 1px solid #1769e0;
+        border-radius: 9px;
+        background: #1769e0;
+        color: #ffffff;
+        font-size: .78rem;
+        font-weight: 800;
+        cursor: pointer;
+        transition: .15s ease;
+    }
+
+    .created-download-button:hover {
+        background: #155bc4;
+        border-color: #155bc4;
+    }
+
+    /* =====================================================
+       LINK / KOPYALAMA
+    ====================================================== */
+
+    .created-share-row {
+        display: flex;
+        align-items: center;
+        gap: 9px;
+        margin: 0 auto 20px;
+        padding: 12px;
+        border: 1px solid #e4e7ec;
+        border-radius: 12px;
+        background: #f8fafc;
+    }
+
+    .created-url {
+        min-width: 0;
+        flex: 1;
+        overflow: hidden;
+        color: #475467;
+        font-size: .78rem;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+    }
+
+    .created-copy-button {
+        min-height: 38px;
+        padding: 0 12px;
+        border: 1px solid #d0d5dd;
+        border-radius: 8px;
+        background: #ffffff;
+        color: #344054;
+        font-size: .72rem;
+        font-weight: 750;
+        cursor: pointer;
+        transition: .15s ease;
+    }
+
+    .created-copy-button:hover {
+        background: #f9fafb;
+    }
+
+    /* =====================================================
+       ALT BUTONLAR
+    ====================================================== */
+
+    .created-actions {
+        display: flex;
+        justify-content: center;
+        gap: 10px;
+        flex-wrap: wrap;
+    }
+
+    .created-action {
+        min-height: 45px;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        padding: 0 16px;
+        border-radius: 9px;
+        font-size: .78rem;
+        font-weight: 800;
+        text-decoration: none;
+        transition: .15s ease;
+    }
+
+    .created-action.secondary {
+        border: 1px solid #d0d5dd;
+        background: #ffffff;
+        color: #344054;
+    }
+
+    .created-action.secondary:hover {
+        background: #f9fafb;
+        color: #101828;
+    }
+
+    .created-action.primary {
+        border: 1px solid #1769e0;
+        background: #1769e0;
+        color: #ffffff;
+    }
+
+    .created-action.primary:hover {
+        background: #155bc4;
+        border-color: #155bc4;
+        color: #ffffff;
+    }
+
+    /* =====================================================
+       TOAST
+    ====================================================== */
+
+    .created-toast {
+        position: fixed;
+        right: 24px;
+        bottom: 24px;
+        z-index: 9999;
+        padding: 10px 14px;
+        border-radius: 9px;
+        background: #101828;
+        color: #ffffff;
+        font-size: .78rem;
+        font-weight: 750;
+        opacity: 0;
+        transform: translateY(10px);
+        transition: .18s ease;
+        pointer-events: none;
+    }
+
+    .created-toast.show {
+        opacity: 1;
+        transform: translateY(0);
+    }
+
+    /* =====================================================
+       RESPONSIVE
+    ====================================================== */
+
+    @@media (max-width: 680px) {
+
+        #surveyCreatedPage {
+            padding: 22px 12px 40px;
+        }
+
+        .created-card {
+            padding: 26px 16px;
+        }
+
+        .created-title {
+            font-size: 1.7rem;
+        }
+
+        .created-code-value {
+            font-size: 2rem;
+        }
+
+        .created-qr-layout {
+            flex-direction: column;
+            gap: 18px;
+        }
+
+        .created-qr-side {
+            text-align: center;
+        }
+
+        .created-share-row {
+            align-items: stretch;
+            flex-direction: column;
+        }
+
+        .created-url {
+            width: 100%;
+            white-space: normal;
+            word-break: break-all;
+        }
+
+        .created-copy-button {
+            width: 100%;
+        }
+    }
+</style>
+
+
+<section id="surveyCreatedPage">
+
+    <div class="created-card">
+
+        <!-- BAŞARI İKONU -->
+
+        <div class="created-success-icon">
+            ✓
+        </div>
+
+
+        <!-- BAŞLIK -->
+
+        <h1 class="created-title">
+            Anket yayına hazır
+        </h1>
+
+
+        <p class="created-subtitle">
+
+            <strong>
+                @Model.Title
+            </strong>
+
+            başarıyla oluşturuldu.
+
+            Aşağıdaki kodu, bağlantıyı veya QR kodunu
+            katılımcılarla paylaşabilirsin.
+
+        </p>
+
+
+        <!-- =================================================
+             6 HANELİ ANKET KODU
+        ================================================== -->
+
+        <div class="created-code-box">
+
+            <span class="created-code-label">
+                6 HANELİ ANKET KODU
+            </span>
+
+            <strong class="created-code-value">
+                @Model.Code
+            </strong>
+
+        </div>
+
+
+        <!-- =================================================
+             QR KOD
+        ================================================== -->
+
+        <section class="created-qr-card">
+
+            <h2 class="created-qr-heading">
+                QR Kod ile Paylaş
+            </h2>
+
+            <p class="created-qr-description">
+                Katılımcılar bu QR kodu telefon kamerasıyla
+                veya ana sayfadaki “QR Kod Tara” özelliğiyle
+                okutarak doğrudan ankete katılabilir.
+            </p>
+
+
+            <div class="created-qr-layout">
+
+
+                <!-- QR -->
+
+                <div class="created-qr-box">
+
+                    <div id="surveyQrCode">
+
+                        <div id="qrLoadingMessage"
+                             class="created-qr-loading">
+
+                            QR kod hazırlanıyor...
+
+                        </div>
+
+                    </div>
+
+                </div>
+
+
+                <!-- QR AÇIKLAMA -->
+
+                <div class="created-qr-side">
+
+                    <strong>
+                        Paylaşıma hazır QR kod
+                    </strong>
+
+                    <p>
+                        QR kodun içinde bu anketin bağlantısı bulunur.
+                        Dilersen ekranda gösterebilir veya
+                        PNG olarak indirebilirsin.
+                    </p>
+
+                    <button type="button"
+                            id="downloadQrButton"
+                            class="created-download-button">
+
+                        ↓ QR Kodunu İndir
+
+                    </button>
+
+                </div>
+
+            </div>
+
+        </section>
+
+
+        <!-- =================================================
+             LINK + KOPYALA
+        ================================================== -->
+
+        <div class="created-share-row">
+
+            <div class="created-url"
+                 title="@surveyUrl">
+
+                @surveyUrl
+
+            </div>
+
+
+            <button type="button"
+                    class="created-copy-button"
+                    data-copy="@Model.Code">
+
+                Kodu Kopyala
+
+            </button>
+
+
+            <button type="button"
+                    class="created-copy-button"
+                    data-copy="@surveyUrl">
+
+                Linki Kopyala
+
+            </button>
+
+        </div>
+
+
+        <!-- =================================================
+             ALT BUTONLAR
+        ================================================== -->
+
+        <div class="created-actions">
+
+            <a asp-controller="Survey"
+               asp-action="Join"
+               asp-route-code="@Model.Code"
+               target="_blank"
+               class="created-action secondary">
+
+                👁 Katılımcı Ekranını Aç
+
+            </a>
+
+
+            <a asp-controller="Survey"
+               asp-action="Index"
+               class="created-action primary">
+
+                Anketlerime Git →
+
+            </a>
+
+        </div>
+
+    </div>
+
+
+    <div id="createdToast"
+         class="created-toast">
+
+        Kopyalandı ✓
+
+    </div>
+
+</section>
+
+
+@section Scripts {
+
+    <!-- QR CODE KÜTÜPHANESİ -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+
+
+    <script>
+        (() => {
+
+            const surveyUrl =
+                @Html.Raw(
+                    System.Text.Json.JsonSerializer.Serialize(
+                        surveyUrl
+                    )
+                );
+
+
+            const surveyCode =
+                @Html.Raw(
+                    System.Text.Json.JsonSerializer.Serialize(
+                        Model.Code
+                    )
+                );
+
+
+            const qrContainer =
+                document.getElementById(
+                    "surveyQrCode"
+                );
+
+
+            const loadingMessage =
+                document.getElementById(
+                    "qrLoadingMessage"
+                );
+
+
+            const downloadButton =
+                document.getElementById(
+                    "downloadQrButton"
+                );
+
+
+            const toast =
+                document.getElementById(
+                    "createdToast"
+                );
+
+
+            // =================================================
+            // QR OLUŞTUR
+            // =================================================
+
+            if (qrContainer) {
+
+                if (typeof QRCode !== "undefined") {
+
+                    qrContainer.innerHTML = "";
+
+
+                    new QRCode(
+                        qrContainer,
+                        {
+                            text: surveyUrl,
+
+                            width: 190,
+
+                            height: 190,
+
+                            colorDark:
+                                "#101828",
+
+                            colorLight:
+                                "#ffffff",
+
+                            correctLevel:
+                                QRCode.CorrectLevel.H
+                        }
+                    );
+
+
+                    /*
+                     * QRCode.js bazı tarayıcılarda
+                     * hem canvas hem de img üretebilir.
+                     *
+                     * Bu yüzden tek bir QR görünmesini
+                     * garanti ediyoruz.
+                     */
+                    window.setTimeout(
+                        () => {
+
+                            const canvas =
+                                qrContainer.querySelector(
+                                    "canvas"
+                                );
+
+
+                            const image =
+                                qrContainer.querySelector(
+                                    "img"
+                                );
+
+
+                            if (canvas) {
+
+                                canvas.style.width =
+                                    "190px";
+
+                                canvas.style.height =
+                                    "190px";
+
+                                canvas.style.maxWidth =
+                                    "190px";
+
+                                canvas.style.maxHeight =
+                                    "190px";
+
+                                canvas.style.display =
+                                    "block";
+
+
+                                /*
+                                 * Canvas varsa ikinci img
+                                 * görüntüsünü gizle.
+                                 */
+                                if (image) {
+
+                                    image.style.display =
+                                        "none";
+
+                                }
+
+                            }
+
+                            else if (image) {
+
+                                image.style.width =
+                                    "190px";
+
+                                image.style.height =
+                                    "190px";
+
+                                image.style.maxWidth =
+                                    "190px";
+
+                                image.style.maxHeight =
+                                    "190px";
+
+                                image.style.objectFit =
+                                    "contain";
+
+                                image.style.display =
+                                    "block";
+
+                            }
+
+                        },
+                        60
+                    );
+
+                }
+
+                else if (loadingMessage) {
+
+                    loadingMessage.textContent =
+                        "QR kod kütüphanesi yüklenemedi. İnternet bağlantısını kontrol edip sayfayı yenile.";
+
+                }
+
+            }
+
+
+            // =================================================
+            // KOPYALA
+            // =================================================
+
+            document
+                .querySelectorAll(
+                    "[data-copy]"
+                )
+                .forEach(
+                    button => {
+
+                        button.addEventListener(
+                            "click",
+                            async () => {
+
+                                try {
+
+                                    await navigator
+                                        .clipboard
+                                        .writeText(
+                                            button.dataset.copy ?? ""
+                                        );
+
+
+                                    toast?.classList.add(
+                                        "show"
+                                    );
+
+
+                                    setTimeout(
+                                        () => {
+
+                                            toast?.classList.remove(
+                                                "show"
+                                            );
+
+                                        },
+                                        1300
+                                    );
+
+                                }
+
+                                catch {
+
+                                    alert(
+                                        "Kopyalama işlemi gerçekleştirilemedi."
+                                    );
+
+                                }
+
+                            }
+                        );
+
+                    }
+                );
+
+
+            // =================================================
+            // QR PNG OLARAK İNDİR
+            // =================================================
+
+            downloadButton?.addEventListener(
+                "click",
+                () => {
+
+                    const canvas =
+                        qrContainer?.querySelector(
+                            "canvas"
+                        );
+
+
+                    const image =
+                        qrContainer?.querySelector(
+                            "img"
+                        );
+
+
+                    let dataUrl =
+                        "";
+
+
+                    if (canvas) {
+
+                        dataUrl =
+                            canvas.toDataURL(
+                                "image/png"
+                            );
+
+                    }
+
+                    else if (image) {
+
+                        dataUrl =
+                            image.src;
+
+                    }
+
+
+                    if (!dataUrl) {
+
+                        alert(
+                            "QR kod henüz hazırlanmadı."
+                        );
+
+                        return;
+
+                    }
+
+
+                    const link =
+                        document.createElement(
+                            "a"
+                        );
+
+
+                    link.href =
+                        dataUrl;
+
+
+                    link.download =
+                        `YGT-Anket-${surveyCode}-QR.png`;
+
+
+                    document.body.appendChild(
+                        link
+                    );
+
+
+                    link.click();
+
+
+                    link.remove();
+
+                }
+            );
+
+        })();
+    </script>
+
+}

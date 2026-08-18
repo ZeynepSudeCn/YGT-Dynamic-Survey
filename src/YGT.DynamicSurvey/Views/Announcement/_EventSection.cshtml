@@ -1,0 +1,20 @@
+@model (string Title, string Subtitle, List<YGT.DynamicSurvey.Models.Event> Items, string State)
+<section class="event-section">
+    <div class="section-heading"><div><h2>@Model.Title</h2><p>@Model.Subtitle</p></div><span>@Model.Items.Count etkinlik</span></div>
+    @if (!Model.Items.Any()) { <div class="empty-state">Bu bölümde henüz etkinlik bulunmuyor.</div> }
+    <div class="event-grid">
+        @foreach (var item in Model.Items)
+        {
+            <article class="event-card">
+                @if (item.ImageUrls.Any()) { <img src="@item.ImageUrls.First()" alt="@item.Title" loading="lazy" /> }
+                <div class="event-card-body">
+                    <div class="event-card-labels"><span>@item.Category</span>@if(Model.State == "live") { <strong>Şu an gerçekleşiyor</strong> }</div>
+                    <h3>@item.Title</h3><p>@item.Summary</p>
+                    <div class="event-meta"><time>@item.StartsAt.ToString("dd.MM.yyyy HH:mm")</time>@if(!string.IsNullOrWhiteSpace(item.Location)){<span>• @item.Location</span>}</div>
+                    <div class="event-actions"><a asp-action="Detail" asp-route-id="@item.Id">Detayları Gör</a>
+                    @if(Model.State == "past" && item.Survey is not null){<a asp-controller="Survey" asp-action="Join" asp-route-code="@item.Survey.Code" class="secondary">Ankete Git</a>}</div>
+                </div>
+            </article>
+        }
+    </div>
+</section>

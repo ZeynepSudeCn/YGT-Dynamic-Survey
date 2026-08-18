@@ -1,0 +1,696 @@
+@model List<YGT.DynamicSurvey.Models.Survey>
+
+@{
+    ViewData["Title"] = "Anketlerim";
+    var now = DateTime.Now;
+}
+
+<div class="results-page">
+
+    <!-- =====================================================
+         BAŞLIK
+    ====================================================== -->
+
+    <div class="results-detail-header">
+
+        <div>
+
+            <span class="dashboard-eyebrow">
+                Anket Yönetimi
+            </span>
+
+            <h1>
+                Anketlerim
+            </h1>
+
+            <p>
+                Oluşturduğun anketleri görüntüle, paylaş ve yönet.
+            </p>
+
+        </div>
+
+
+        <a asp-controller="Survey"
+           asp-action="Create"
+           class="surveys-create-button">
+
+            + Yeni Anket Oluştur
+
+        </a>
+
+    </div>
+
+
+    <!-- =====================================================
+         MESAJLAR
+    ====================================================== -->
+
+    @if (TempData["SurveyActionSuccess"] is not null)
+    {
+        <div class="alert alert-success">
+            @TempData["SurveyActionSuccess"]
+        </div>
+    }
+
+    @if (TempData["SurveyActionError"] is not null)
+    {
+        <div class="alert alert-danger">
+            @TempData["SurveyActionError"]
+        </div>
+    }
+
+
+    <!-- =====================================================
+         ARAMA
+    ====================================================== -->
+
+    <div class="survey-list-toolbar survey-list-toolbar-enhanced">
+
+        <div class="survey-search-box">
+
+            <span>🔎</span>
+
+            <input type="search"
+                   id="surveySearch"
+                   placeholder="Anket adı veya kod ara..." />
+
+        </div>
+
+        <div class="survey-bulk-actions">
+
+            <span id="selectedSurveyCount"
+                  class="survey-selected-count">
+                0 seçili
+            </span>
+
+            <form asp-controller="Survey"
+                  asp-action="DeleteSelected"
+                  method="post"
+                  id="bulkDeleteForm"
+                  class="m-0">
+
+                @Html.AntiForgeryToken()
+
+                <div id="bulkDeleteHiddenInputs"></div>
+
+                <button type="submit"
+                        id="bulkDeleteButton"
+                        class="survey-bulk-delete-button"
+                        disabled>
+                    🗑 Seçilenleri Sil
+                </button>
+
+            </form>
+
+        </div>
+
+    </div>
+
+
+    <!-- =====================================================
+         ANKET YOK
+    ====================================================== -->
+
+    @if (Model.Count == 0)
+    {
+        <div class="dashboard-section">
+
+            <div class="dashboard-empty">
+
+                <div class="dashboard-empty-icon">
+                    📋
+                </div>
+
+                <h3>
+                    Henüz anket oluşturmadın.
+                </h3>
+
+                <p>
+                    İlk anketini oluşturarak başlayabilirsin.
+                </p>
+
+                <a asp-controller="Survey"
+                   asp-action="Create"
+                   class="dashboard-empty-button">
+
+                    + İlk Anketimi Oluştur
+
+                </a>
+
+            </div>
+
+        </div>
+    }
+    else
+    {
+        <!-- =================================================
+             MASAÜSTÜ TABLO
+        ================================================== -->
+
+        <div class="survey-management-table-wrap">
+
+            <table class="survey-management-table">
+
+                <thead>
+
+                    <tr>
+
+                        <th class="survey-select-column">
+                            <input type="checkbox"
+                                   id="selectAllSurveys"
+                                   class="survey-row-checkbox"
+                                   aria-label="Tüm anketleri seç" />
+                        </th>
+
+                        <th>
+                            Anket Adı
+                        </th>
+
+                        <th>
+                            Durum
+                        </th>
+
+                        <th>
+                            Başlangıç
+                        </th>
+
+                        <th>
+                            Bitiş
+                        </th>
+
+                        <th>
+                            Kod
+                        </th>
+
+                        <th>
+                            İşlemler
+                        </th>
+
+                    </tr>
+
+                </thead>
+
+
+                <tbody id="surveyTableBody">
+
+                    @foreach (var survey in Model)
+                    {
+                        string statusText;
+                        string statusClass;
+
+                        if (!survey.IsActive)
+                        {
+                            statusText =
+                                "Durduruldu";
+
+                            statusClass =
+                                "passive";
+                        }
+                        else if (
+                            survey.StartDate == default ||
+                            survey.EndDate == default)
+                        {
+                            statusText =
+                                "Tarih Belirlenmemiş";
+
+                            statusClass =
+                                "passive";
+                        }
+                        else if (now < survey.StartDate)
+                        {
+                            statusText =
+                                "Planlandı";
+
+                            statusClass =
+                                "planned";
+                        }
+                        else if (now > survey.EndDate)
+                        {
+                            statusText =
+                                "Tamamlandı";
+
+                            statusClass =
+                                "completed";
+                        }
+                        else
+                        {
+                            statusText =
+                                "Yayında";
+
+                            statusClass =
+                                "active";
+                        }
+
+
+                        <tr class="survey-search-item"
+                            data-title="@survey.Title.ToLowerInvariant()"
+                            data-code="@survey.Code"
+                            data-survey-id="@survey.Id">
+
+                            <td class="survey-select-column">
+                                <input type="checkbox"
+                                       class="survey-row-checkbox survey-select-checkbox"
+                                       value="@survey.Id"
+                                       aria-label="@survey.Title anketini seç" />
+                            </td>
+
+                            <td>
+
+                                <strong class="survey-table-title">
+                                    @survey.Title
+                                </strong>
+
+                                @if (!string.IsNullOrWhiteSpace(survey.Description))
+                                {
+                                    <small>
+                                        @survey.Description
+                                    </small>
+                                }
+
+                            </td>
+
+
+                            <td>
+
+                                <span class="dashboard-status @statusClass">
+                                    @statusText
+                                </span>
+
+                            </td>
+
+
+                            <td>
+
+                                @if (survey.StartDate == default)
+                                {
+                                    <span class="survey-date-missing">
+                                        Belirlenmemiş
+                                    </span>
+                                }
+                                else
+                                {
+                                    @survey.StartDate.ToString("dd.MM.yyyy HH:mm")
+                                }
+
+                            </td>
+
+
+                            <td>
+
+                                @if (survey.EndDate == default)
+                                {
+                                    <span class="survey-date-missing">
+                                        Belirlenmemiş
+                                    </span>
+                                }
+                                else
+                                {
+                                    @survey.EndDate.ToString("dd.MM.yyyy HH:mm")
+                                }
+
+                            </td>
+
+
+                            <td>
+
+                                <strong class="survey-table-code">
+                                    @survey.Code
+                                </strong>
+
+                            </td>
+
+
+                            <td>
+
+                                <div class="survey-table-actions">
+
+                                    <a asp-controller="Survey"
+                                       asp-action="Join"
+                                       asp-route-code="@survey.Code"
+                                       class="survey-table-button">
+
+                                        👁 Görüntüle
+
+                                    </a>
+
+
+                                    <a asp-controller="Survey"
+                                       asp-action="Edit"
+                                       asp-route-id="@survey.Id"
+                                       class="survey-table-button">
+
+                                        ✏ Düzenle
+
+                                    </a>
+
+
+                                    <a asp-controller="Survey"
+                                       asp-action="Created"
+                                       asp-route-id="@survey.Id"
+                                       class="survey-table-button">
+
+                                        ↗ Paylaş
+
+                                    </a>
+
+
+                                    <a asp-controller="Survey"
+                                       asp-action="Results"
+                                       asp-route-id="@survey.Id"
+                                       class="survey-table-button primary">
+
+                                        📊 Sonuçlar
+
+                                    </a>
+
+                                    <form asp-controller="Survey" asp-action="Duplicate" method="post" class="m-0">
+                                        @Html.AntiForgeryToken()
+                                        <input type="hidden" name="id" value="@survey.Id" />
+                                        <button type="submit" class="survey-table-button">📋 Kopyala</button>
+                                    </form>
+
+
+                                    <form asp-controller="Survey"
+                                          asp-action="Delete"
+                                          method="post"
+                                          class="m-0 survey-delete-single-form">
+
+                                        @Html.AntiForgeryToken()
+
+                                        <input type="hidden"
+                                               name="id"
+                                               value="@survey.Id" />
+
+                                        <button type="submit"
+                                                class="survey-table-button delete"
+                                                data-survey-title="@survey.Title">
+                                            🗑 Sil
+                                        </button>
+
+                                    </form>
+
+
+                                    @if (
+                                        survey.EndDate == default ||
+                                        DateTime.Now <= survey.EndDate ||
+                                        survey.IsActive)
+                                    {
+                                        <form asp-controller="Survey"
+                                              asp-action="ToggleActive"
+                                              method="post"
+                                              class="m-0">
+
+                                            @Html.AntiForgeryToken()
+
+                                            <input type="hidden"
+                                                   name="id"
+                                                   value="@survey.Id" />
+
+                                            @if (survey.IsActive)
+                                            {
+                                                <button type="submit"
+                                                        class="survey-table-button danger">
+
+                                                    ⏸ Durdur
+
+                                                </button>
+                                            }
+                                            else
+                                            {
+                                                <button type="submit"
+                                                        class="survey-table-button success">
+
+                                                    ▶ Aktifleştir
+
+                                                </button>
+                                            }
+
+                                        </form>
+                                    }
+
+                                </div>
+
+                            </td>
+
+                        </tr>
+                    }
+
+                </tbody>
+
+            </table>
+
+        </div>
+
+
+        <div id="surveyNoResult"
+             class="survey-no-result"
+             style="display:none;">
+
+            Aramana uygun anket bulunamadı.
+
+        </div>
+    }
+
+</div>
+
+
+@section Scripts {
+
+    <script>
+
+        (() => {
+
+            const search =
+                document.getElementById(
+                    "surveySearch"
+                );
+
+            const rows =
+                document.querySelectorAll(
+                    ".survey-search-item"
+                );
+
+            const noResult =
+                document.getElementById(
+                    "surveyNoResult"
+                );
+
+
+            if (!search) {
+                return;
+            }
+
+
+            const selectAll =
+                document.getElementById("selectAllSurveys");
+
+            const selectedCount =
+                document.getElementById("selectedSurveyCount");
+
+            const bulkDeleteButton =
+                document.getElementById("bulkDeleteButton");
+
+            const bulkDeleteForm =
+                document.getElementById("bulkDeleteForm");
+
+            const hiddenInputs =
+                document.getElementById("bulkDeleteHiddenInputs");
+
+            const checkboxes =
+                [...document.querySelectorAll(".survey-select-checkbox")];
+
+
+            function refreshSelection() {
+
+                const selected =
+                    checkboxes.filter(x => x.checked);
+
+                if (selectedCount) {
+                    selectedCount.textContent =
+                        `${selected.length} seçili`;
+                }
+
+                if (bulkDeleteButton) {
+                    bulkDeleteButton.disabled =
+                        selected.length === 0;
+                }
+
+                if (selectAll) {
+                    const visibleCheckboxes =
+                        checkboxes.filter(
+                            checkbox =>
+                                checkbox.closest("tr")?.style.display !== "none"
+                        );
+
+                    selectAll.checked =
+                        visibleCheckboxes.length > 0 &&
+                        visibleCheckboxes.every(x => x.checked);
+
+                    selectAll.indeterminate =
+                        visibleCheckboxes.some(x => x.checked) &&
+                        !selectAll.checked;
+                }
+            }
+
+
+            search.addEventListener(
+                "input",
+                () => {
+
+                    const value =
+                        search.value
+                            .trim()
+                            .toLocaleLowerCase("tr-TR");
+
+                    let visibleCount = 0;
+
+                    rows.forEach(row => {
+
+                        const title =
+                            row.dataset.title ?? "";
+
+                        const code =
+                            row.dataset.code ?? "";
+
+                        const visible =
+                            title.includes(value) ||
+                            code.includes(value);
+
+                        row.style.display =
+                            visible ? "" : "none";
+
+                        if (visible) {
+                            visibleCount++;
+                        }
+
+                    });
+
+                    if (noResult) {
+                        noResult.style.display =
+                            visibleCount === 0
+                                ? "block"
+                                : "none";
+                    }
+
+                    refreshSelection();
+                }
+            );
+
+
+            selectAll?.addEventListener(
+                "change",
+                () => {
+
+                    checkboxes.forEach(
+                        checkbox => {
+
+                            const row =
+                                checkbox.closest("tr");
+
+                            if (row?.style.display !== "none") {
+                                checkbox.checked =
+                                    selectAll.checked;
+                            }
+
+                        }
+                    );
+
+                    refreshSelection();
+                }
+            );
+
+
+            checkboxes.forEach(
+                checkbox => {
+
+                    checkbox.addEventListener(
+                        "change",
+                        refreshSelection
+                    );
+
+                }
+            );
+
+
+            document.querySelectorAll(
+                ".survey-delete-single-form"
+            ).forEach(
+                form => {
+
+                    form.addEventListener(
+                        "submit",
+                        event => {
+
+                            const title =
+                                form.querySelector(
+                                    "[data-survey-title]"
+                                )?.dataset.surveyTitle ?? "Bu anket";
+
+                            const approved =
+                                confirm(
+                                    `"${title}" kalıcı olarak silinsin mi?\n\nAnket soruları ve toplanan yanıtlar da silinecek.`
+                                );
+
+                            if (!approved) {
+                                event.preventDefault();
+                            }
+
+                        }
+                    );
+
+                }
+            );
+
+
+            bulkDeleteForm?.addEventListener(
+                "submit",
+                event => {
+
+                    const selected =
+                        checkboxes.filter(x => x.checked);
+
+                    if (selected.length === 0) {
+                        event.preventDefault();
+                        return;
+                    }
+
+                    const approved =
+                        confirm(
+                            `${selected.length} anket kalıcı olarak silinsin mi?\n\nSeçili anketlerin soruları ve tüm yanıtları da silinecek.`
+                        );
+
+                    if (!approved) {
+                        event.preventDefault();
+                        return;
+                    }
+
+                    if (hiddenInputs) {
+                        hiddenInputs.innerHTML = "";
+
+                        selected.forEach(
+                            checkbox => {
+
+                                const input =
+                                    document.createElement("input");
+
+                                input.type = "hidden";
+                                input.name = "ids";
+                                input.value = checkbox.value;
+
+                                hiddenInputs.appendChild(input);
+
+                            }
+                        );
+                    }
+
+                }
+            );
+
+
+            refreshSelection();
+
+        })();
+
+    </script>
+
+}

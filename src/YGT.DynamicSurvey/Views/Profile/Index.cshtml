@@ -1,0 +1,292 @@
+@model YGT.DynamicSurvey.Models.ViewModels.Profile.ProfileViewModel
+
+@{
+    ViewData["Title"] = "Profil";
+}
+
+<!-- =====================================================
+     BAŞLIK
+====================================================== -->
+
+<div class="profile-heading">
+
+    <span class="dashboard-eyebrow">
+        Hesabım
+    </span>
+
+    <h1>
+        Profil
+    </h1>
+
+    <p>
+        Hesap bilgilerini ve tercihlerini buradan yönetebilirsin.
+    </p>
+
+</div>
+
+
+<!-- =====================================================
+     MESAJLAR
+====================================================== -->
+
+@if (TempData["ProfileSuccess"] is not null)
+{
+    <div class="alert alert-success">
+        @TempData["ProfileSuccess"]
+    </div>
+}
+
+@if (TempData["PasswordSuccess"] is not null)
+{
+    <div class="alert alert-success">
+        @TempData["PasswordSuccess"]
+    </div>
+}
+
+
+<!-- =====================================================
+     HESAP ÖZETİ
+====================================================== -->
+
+<div class="profile-summary-card">
+
+    <div class="profile-big-avatar">
+        👤
+    </div>
+
+    <div class="profile-summary-info">
+
+        <h2>
+            @Model.FullName
+        </h2>
+
+        <p>
+            @Model.Email
+        </p>
+
+        <div class="profile-meta">
+
+            <span>
+                📅 Üyelik:
+                <strong>
+                    @(Model.CreatedAt.ToLocalTime().ToString("dd.MM.yyyy"))
+                </strong>
+            </span>
+
+            @if (Model.IsActive)
+            {
+                <span class="profile-active">
+                    ● Aktif Hesap
+                </span>
+            }
+            else
+            {
+                <span class="profile-passive">
+                    ● Pasif Hesap
+                </span>
+            }
+
+        </div>
+
+    </div>
+
+</div>
+
+
+<div class="profile-grid">
+
+    <!-- =================================================
+         PROFİL BİLGİLERİ
+    ================================================== -->
+
+    <section class="profile-card">
+
+        <div class="profile-card-header">
+
+            <div>
+
+                <h2>
+                    Profil Bilgileri
+                </h2>
+
+                <p>
+                    Adını ve iletişim tercihlerini güncelle.
+                </p>
+
+            </div>
+
+        </div>
+
+
+        <form asp-controller="Profile"
+              asp-action="UpdateProfile"
+              method="post">
+
+            @Html.AntiForgeryToken()
+
+            <div asp-validation-summary="ModelOnly"
+                 class="text-danger mb-3">
+            </div>
+
+
+            <div class="mb-3">
+
+                <label asp-for="FullName"
+                       class="form-label">
+                </label>
+
+                <input asp-for="FullName"
+                       class="form-control" />
+
+                <span asp-validation-for="FullName"
+                      class="text-danger">
+                </span>
+
+            </div>
+
+
+            <div class="mb-3">
+
+                <label asp-for="Email"
+                       class="form-label">
+                </label>
+
+                <input asp-for="Email"
+                       class="form-control"
+                       readonly />
+
+                <small class="profile-help-text">
+                    E-posta değişikliği güvenlik nedeniyle
+                    bu ekrandan yapılamaz.
+                </small>
+
+            </div>
+
+
+            <div class="profile-consent-box">
+
+                <input asp-for="ReceiveAnnouncements"
+                       class="form-check-input" />
+
+                <label asp-for="ReceiveAnnouncements"
+                       class="form-check-label">
+                </label>
+
+            </div>
+
+
+            <button type="submit"
+                    class="profile-primary-button">
+
+                Değişiklikleri Kaydet
+
+            </button>
+
+        </form>
+
+    </section>
+
+
+    <!-- =================================================
+         ŞİFRE DEĞİŞTİR
+    ================================================== -->
+
+    <section class="profile-card">
+
+        <div class="profile-card-header">
+
+            <div>
+
+                <h2>
+                    Şifre Değiştir
+                </h2>
+
+                <p>
+                    Hesabının şifresini güvenli şekilde güncelle.
+                </p>
+
+            </div>
+
+        </div>
+
+
+        <form asp-controller="Profile"
+              asp-action="ChangePassword"
+              method="post">
+
+            @Html.AntiForgeryToken()
+
+            <div asp-validation-summary="ModelOnly"
+                 class="text-danger mb-3">
+            </div>
+
+
+            <div class="mb-3">
+
+                <label asp-for="CurrentPassword"
+                       class="form-label">
+                </label>
+
+                <input asp-for="CurrentPassword"
+                       class="form-control"
+                       autocomplete="current-password" />
+
+                <span asp-validation-for="CurrentPassword"
+                      class="text-danger">
+                </span>
+
+            </div>
+
+
+            <div class="mb-3">
+
+                <label asp-for="NewPassword"
+                       class="form-label">
+                </label>
+
+                <input asp-for="NewPassword"
+                       class="form-control"
+                       autocomplete="new-password" />
+
+                <span asp-validation-for="NewPassword"
+                      class="text-danger">
+                </span>
+
+            </div>
+
+
+            <div class="mb-4">
+
+                <label asp-for="ConfirmNewPassword"
+                       class="form-label">
+                </label>
+
+                <input asp-for="ConfirmNewPassword"
+                       class="form-control"
+                       autocomplete="new-password" />
+
+                <span asp-validation-for="ConfirmNewPassword"
+                      class="text-danger">
+                </span>
+
+            </div>
+
+
+            <button type="submit"
+                    class="profile-secondary-button">
+
+                Şifremi Değiştir
+
+            </button>
+
+        </form>
+
+    </section>
+
+</div>
+
+
+@section Scripts
+{
+    <partial name="_ValidationScriptsPartial" />
+}

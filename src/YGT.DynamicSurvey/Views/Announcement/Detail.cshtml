@@ -1,0 +1,23 @@
+@model YGT.DynamicSurvey.Models.Event
+@{ ViewData["Title"] = Model.Title; var images = Model.ImageUrls; }
+<article class="event-detail">
+    @if (images.Any())
+    {
+        <button type="button" class="event-gallery-cover" data-gallery-open="0" aria-label="Fotoğraf galerisini aç">
+            <img class="event-detail-image" src="@images[0]" alt="@Model.Title" />
+            @if(images.Count > 1){<span>＋ @images.Count fotoğrafı görüntüle</span>}
+        </button>
+        @if(images.Count > 1){<div class="event-thumbnails">@for(var i=0;i<images.Count;i++){var index=i;<button type="button" data-gallery-open="@index"><img src="@images[index]" alt="@($"{Model.Title} - {index+1}. fotoğraf")"/></button>}</div>}
+    }
+    <div class="event-detail-content">
+        <span class="dashboard-eyebrow">@Model.Category</span><h1>@Model.Title</h1><p class="event-lead">@Model.Summary</p>
+        <div class="event-detail-meta"><span>📅 @Model.StartsAt.ToString("dd.MM.yyyy HH:mm") – @Model.EndsAt.ToString("dd.MM.yyyy HH:mm")</span>@if(!string.IsNullOrWhiteSpace(Model.Location)){<span>📍 @Model.Location</span>}</div>
+        <div class="event-description">@Model.Description</div>
+        <div class="event-actions"><a asp-action="Index" class="secondary">← Etkinliklere Dön</a>@if(!string.IsNullOrWhiteSpace(Model.InstagramUrl)){<a href="@Model.InstagramUrl" target="_blank" rel="noopener">Instagram'da Gör</a>}@if(Model.EndsAt < DateTime.Now && Model.Survey is not null){<a asp-controller="Survey" asp-action="Join" asp-route-code="@Model.Survey.Code">Ankete Git</a>}</div>
+    </div>
+</article>
+@if(images.Any())
+{
+<div class="gallery-lightbox" id="eventGallery" aria-hidden="true"><button type="button" class="gallery-close" aria-label="Galeriyi kapat">×</button><button type="button" class="gallery-nav prev" aria-label="Önceki fotoğraf">‹</button><figure><img id="galleryImage" src="@images[0]" alt="@Model.Title"/><figcaption><strong>@Model.Title</strong><span id="galleryCounter"></span><small>@Model.StartsAt.ToString("dd.MM.yyyy") @if(!string.IsNullOrWhiteSpace(Model.Location)){<text> · @Model.Location</text>}</small></figcaption></figure><button type="button" class="gallery-nav next" aria-label="Sonraki fotoğraf">›</button></div>
+}
+@section Scripts { <script>window.eventGalleryImages=@Html.Raw(System.Text.Json.JsonSerializer.Serialize(images));</script> }

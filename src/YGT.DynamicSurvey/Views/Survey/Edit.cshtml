@@ -1,0 +1,954 @@
+@model YGT.DynamicSurvey.Models.ViewModels.Survey.CreateSurveyViewModel
+@using YGT.DynamicSurvey.Models
+
+@{
+    ViewData["Title"] = "Anketi Düzenle";
+
+    var surveyId =
+        (int)(ViewBag.SurveyId ?? 0);
+
+    var surveyCode =
+        ViewBag.SurveyCode as string ?? "";
+
+    var hasResponses =
+        ViewBag.HasResponses is bool value &&
+        value;
+}
+
+<style>
+    #surveyEditPage {
+        width: 100%;
+        max-width: 1050px;
+        margin: 0 auto;
+        padding: 30px 20px 60px;
+    }
+
+    #surveyEditPage * {
+        box-sizing: border-box;
+    }
+
+    .edit-page-header {
+        margin-bottom: 18px;
+    }
+
+    .edit-page-header span {
+        display: block;
+        margin-bottom: 5px;
+        color: #1769e0;
+        font-size: .72rem;
+        font-weight: 850;
+        letter-spacing: .08em;
+        text-transform: uppercase;
+    }
+
+    .edit-page-header h1 {
+        margin: 0 0 6px;
+        color: #101828;
+        font-size: 2rem;
+    }
+
+    .edit-page-header p {
+        margin: 0;
+        color: #667085;
+    }
+
+    .edit-warning {
+        margin-bottom: 16px;
+        padding: 13px 15px;
+        border: 1px solid #fedf89;
+        border-radius: 11px;
+        background: #fffaeb;
+        color: #93370d;
+        font-size: .8rem;
+        line-height: 1.55;
+    }
+
+    .edit-card {
+        margin-bottom: 16px;
+        padding: 22px;
+        border: 1px solid #e4e7ec;
+        border-radius: 16px;
+        background: #fff;
+        box-shadow: 0 8px 28px rgba(16,24,40,.04);
+    }
+
+    .edit-card h2 {
+        margin: 0 0 16px;
+        color: #101828;
+        font-size: 1.1rem;
+    }
+
+    .edit-info-grid,
+    .edit-rule-grid {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 14px;
+    }
+
+    .edit-field {
+        min-width: 0;
+    }
+
+    .edit-field.full {
+        grid-column: 1 / -1;
+    }
+
+    .edit-field label {
+        display: block;
+        margin-bottom: 6px;
+        color: #344054;
+        font-size: .78rem;
+        font-weight: 750;
+    }
+
+    .edit-required {
+        color: #d92d20;
+        font-weight: 900;
+    }
+
+    .edit-field input,
+    .edit-field textarea,
+    .edit-field select {
+        width: 100%;
+        min-height: 44px;
+        padding: 9px 11px;
+        border: 1px solid #d0d5dd;
+        border-radius: 9px;
+        background: #fff;
+        color: #101828;
+        font-size: .84rem;
+    }
+
+    .edit-field textarea {
+        min-height: 95px;
+        resize: vertical;
+    }
+
+    .edit-master-rule {
+        border-color: #d6bbfb;
+        background: linear-gradient(135deg, #fbfaff, #f7f5ff);
+    }
+
+    .edit-master-rule p {
+        margin: -8px 0 15px;
+        color: #667085;
+        font-size: .78rem;
+        line-height: 1.55;
+    }
+
+    .edit-master-actions {
+        display: flex;
+        justify-content: flex-end;
+        margin-top: 12px;
+    }
+
+    .edit-master-button {
+        min-height: 41px;
+        padding: 0 14px;
+        border: 1px solid #6941c6;
+        border-radius: 9px;
+        background: #6941c6;
+        color: #fff;
+        font-size: .76rem;
+        font-weight: 800;
+        cursor: pointer;
+    }
+
+    .edit-question {
+        margin-bottom: 14px;
+        padding: 18px;
+        border: 1px solid #e4e7ec;
+        border-radius: 13px;
+        background: #fafbfc;
+    }
+
+    .edit-question:last-child {
+        margin-bottom: 0;
+    }
+
+    .edit-question-head {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 12px;
+        margin-bottom: 13px;
+    }
+
+    .edit-question-number {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        min-width: 34px;
+        height: 34px;
+        padding: 0 9px;
+        border-radius: 9px;
+        background: #eaf2ff;
+        color: #1769e0;
+        font-size: .8rem;
+        font-weight: 850;
+    }
+
+    .edit-question-type {
+        color: #667085;
+        font-size: .75rem;
+        font-weight: 700;
+    }
+
+    .edit-checkbox {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        min-height: 44px;
+        padding: 9px 11px;
+        border: 1px solid #e4e7ec;
+        border-radius: 9px;
+        background: #fff;
+    }
+
+    .edit-checkbox input {
+        width: 17px;
+        height: 17px;
+        min-height: 0;
+    }
+
+    .edit-options {
+        display: grid;
+        gap: 8px;
+        margin-top: 12px;
+    }
+
+    .edit-options-title {
+        margin-bottom: 2px;
+        color: #344054;
+        font-size: .76rem;
+        font-weight: 800;
+    }
+
+    .edit-condition-box {
+        margin-top: 14px;
+        padding: 14px;
+        border: 1px solid #e9d7fe;
+        border-radius: 11px;
+        background: #fcfaff;
+    }
+
+    .edit-condition-title {
+        margin-bottom: 10px;
+        color: #6941c6;
+        font-size: .8rem;
+        font-weight: 850;
+    }
+
+    .edit-actions {
+        display: flex;
+        align-items: center;
+        justify-content: flex-end;
+        gap: 9px;
+        margin-top: 18px;
+    }
+
+    .edit-cancel,
+    .edit-save {
+        min-height: 45px;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        padding: 0 17px;
+        border-radius: 9px;
+        font-size: .8rem;
+        font-weight: 800;
+        text-decoration: none;
+    }
+
+    .edit-cancel {
+        border: 1px solid #d0d5dd;
+        background: #fff;
+        color: #344054;
+    }
+
+    .edit-save {
+        border: 1px solid #1769e0;
+        background: #1769e0;
+        color: #fff;
+        cursor: pointer;
+    }
+
+    @@media (max-width: 760px) {
+        .edit-info-grid,
+        .edit-rule-grid {
+            grid-template-columns: 1fr;
+        }
+
+        .edit-field.full {
+            grid-column: auto;
+        }
+    }
+</style>
+
+
+<section id="surveyEditPage">
+
+    <div class="edit-page-header">
+        <span>
+            Anket Yönetimi · @surveyCode
+        </span>
+
+        <h1>
+            Anketi Düzenle
+        </h1>
+
+        <p>
+            Soru metinlerini, anket bilgilerini ve dinamik gösterim koşullarını güncelleyebilirsin.
+        </p>
+    </div>
+
+
+    @if (hasResponses)
+    {
+        <div class="edit-warning">
+            ⚠ Bu ankete daha önce cevap verilmiş.
+            Bu nedenle soru tipi, soru sayısı ve seçenek sayısı değiştirilemez.
+            Yazım hatalarını, soru metinlerini, zorunlulukları ve dinamik koşulları düzenleyebilirsin.
+        </div>
+    }
+
+
+    <form asp-controller="Survey"
+          asp-action="Edit"
+          asp-route-id="@surveyId"
+          method="post"
+          id="editSurveyForm">
+
+        @Html.AntiForgeryToken()
+
+        <div asp-validation-summary="ModelOnly"
+             class="alert alert-danger"></div>
+
+
+        <!-- =================================================
+             ANKET BİLGİLERİ
+        ================================================== -->
+
+        <section class="edit-card">
+
+            <h2>
+                Anket Bilgileri
+            </h2>
+
+            <div class="edit-info-grid">
+
+                <div class="edit-field">
+                    <label asp-for="Title">
+                        <span class="edit-required">*</span>
+                        Anket Başlığı
+                    </label>
+
+                    <input asp-for="Title" />
+
+                    <span asp-validation-for="Title"
+                          class="text-danger"></span>
+                </div>
+
+
+                <div class="edit-field">
+                    <label asp-for="Description">
+                        <span class="edit-required">*</span>
+                        Açıklama
+                    </label>
+
+                    <textarea asp-for="Description"></textarea>
+
+                    <span asp-validation-for="Description"
+                          class="text-danger"></span>
+                </div>
+
+
+                <div class="edit-field">
+                    <label asp-for="StartDate">
+                        <span class="edit-required">*</span>
+                        Başlangıç Tarihi ve Saati
+                    </label>
+
+                    <input asp-for="StartDate"
+                           type="datetime-local"
+                           value="@(Model.StartDate?.ToString("yyyy-MM-ddTHH:mm"))" />
+
+                    <span asp-validation-for="StartDate"
+                          class="text-danger"></span>
+                </div>
+
+
+                <div class="edit-field">
+                    <label asp-for="EndDate">
+                        <span class="edit-required">*</span>
+                        Bitiş Tarihi ve Saati
+                    </label>
+
+                    <input asp-for="EndDate"
+                           type="datetime-local"
+                           value="@(Model.EndDate?.ToString("yyyy-MM-ddTHH:mm"))" />
+
+                    <span asp-validation-for="EndDate"
+                          class="text-danger"></span>
+                </div>
+
+            </div>
+
+        </section>
+
+
+        <!-- =================================================
+             TOPLU KATILIM KOŞULU
+        ================================================== -->
+
+        <section class="edit-card edit-master-rule">
+
+            <h2>
+                Ana Katılım Koşulu
+            </h2>
+
+            <p>
+                Örneğin “Etkinliğe katıldınız mı?” sorusuna
+                <strong>Evet</strong> verenlerin etkinlik değerlendirme sorularını görmesini istiyorsan,
+                burada ana soruyu seçip “Evet” yaz.
+                Buton yalnızca şu anda <strong>Her zaman göster</strong> olan sonraki sorulara bu koşulu uygular;
+                zaten özel koşulu olan sorulara dokunmaz.
+            </p>
+
+            <div class="edit-rule-grid">
+
+                <div class="edit-field">
+
+                    <label for="masterParent">
+                        Ana soru
+                    </label>
+
+                    <select id="masterParent">
+
+                        <option value="">
+                            Soru seç
+                        </option>
+
+                        @for (
+                            var i = 0;
+                            i < Model.Questions.Count;
+                            i++
+                        )
+                        {
+                            <option value="@(i + 1)">
+                                Soru @(i + 1): @Model.Questions[i].Text
+                            </option>
+                        }
+
+                    </select>
+
+                </div>
+
+
+                <div class="edit-field">
+
+                    <label for="masterValue">
+                        Hangi cevapta devam etsin?
+                    </label>
+
+                    <input id="masterValue"
+                           type="text"
+                           value="Evet"
+                           placeholder="Örn: Evet" />
+
+                </div>
+
+            </div>
+
+
+            <div class="edit-master-actions">
+
+                <button type="button"
+                        id="applyMasterRule"
+                        class="edit-master-button">
+
+                    Koşulsuz Sonraki Sorulara Uygula
+
+                </button>
+
+            </div>
+
+        </section>
+
+
+        <!-- =================================================
+             SORULAR
+        ================================================== -->
+
+        <section class="edit-card">
+
+            <h2>
+                Sorular ve Dinamik Akış
+            </h2>
+
+
+            @for (
+                var i = 0;
+                i < Model.Questions.Count;
+                i++
+            )
+            {
+                var question =
+                    Model.Questions[i];
+
+                <article class="edit-question"
+                         data-question-index="@i"
+                         data-question-order="@(i + 1)">
+
+                    <input type="hidden"
+                           name="Questions[@i].Order"
+                           value="@(i + 1)" />
+
+                    <input type="hidden"
+                           name="Questions[@i].Type"
+                           value="@((int)question.Type)" />
+
+
+                    <div class="edit-question-head">
+
+                        <span class="edit-question-number">
+                            @(i + 1)
+                        </span>
+
+                        <span class="edit-question-type">
+                            @GetQuestionTypeText(question.Type)
+                        </span>
+
+                    </div>
+
+
+                    <div class="edit-info-grid">
+
+                        <div class="edit-field full">
+
+                            <label>
+                                Soru Metni
+                            </label>
+
+                            <textarea name="Questions[@i].Text"
+                                      required>@question.Text</textarea>
+
+                        </div>
+
+
+                        <div class="edit-field">
+
+                            <label>
+                                Soru Durumu
+                            </label>
+
+                            <div class="edit-checkbox">
+
+                                <input type="checkbox"
+                                       name="Questions[@i].IsRequired"
+                                       value="true"
+                                       @(question.IsRequired ? "checked" : "") />
+
+                                <input type="hidden"
+                                       name="Questions[@i].IsRequired"
+                                       value="false" />
+
+                                <span>
+                                    Bu soru zorunlu olsun
+                                </span>
+
+                            </div>
+
+                        </div>
+
+
+                        @if (question.Type == QuestionType.Rating)
+                        {
+                            <div class="edit-field">
+
+                                <label>
+                                    Maksimum Puan
+                                </label>
+
+                                <select name="Questions[@i].RatingMaxValue">
+
+                                    @for (
+                                        var max = 5;
+                                        max <= 10;
+                                        max++
+                                    )
+                                    {
+                                        <option value="@max"
+                                                selected="@(question.RatingMaxValue == max)">
+                                            @max
+                                        </option>
+                                    }
+
+                                </select>
+
+                            </div>
+                        }
+                        else
+                        {
+                            <input type="hidden"
+                                   name="Questions[@i].RatingMaxValue"
+                                   value="@(question.RatingMaxValue ?? 5)" />
+                        }
+
+                    </div>
+
+
+                    @if (
+                        question.Type == QuestionType.SingleChoice ||
+                        question.Type == QuestionType.MultipleChoice
+                    )
+                    {
+                        <div class="edit-options">
+
+                            <div class="edit-options-title">
+                                Seçenekler
+                            </div>
+
+                            @for (
+                                var optionIndex = 0;
+                                optionIndex < question.Options.Count;
+                                optionIndex++
+                            )
+                            {
+                                <input type="text"
+                                       name="Questions[@i].Options[@optionIndex]"
+                                       value="@question.Options[optionIndex]"
+                                       required />
+                            }
+
+                        </div>
+                    }
+
+
+                    <!-- DİNAMİK KOŞUL -->
+
+                    <div class="edit-condition-box">
+
+                        <div class="edit-condition-title">
+                            Dinamik Gösterim
+                        </div>
+
+
+                        <div class="edit-rule-grid">
+
+                            <div class="edit-field">
+
+                                <label>
+                                    Hangi soruya bağlı?
+                                </label>
+
+                                <select name="Questions[@i].DependsOnQuestionOrder"
+                                        class="edit-parent-select">
+
+                                    <option value="">
+                                        Her zaman göster
+                                    </option>
+
+                                    @for (
+                                        var parentIndex = 0;
+                                        parentIndex < i;
+                                        parentIndex++
+                                    )
+                                    {
+                                        var parentOrder =
+                                            parentIndex + 1;
+
+                                        <option value="@parentOrder"
+                                                selected="@(question.DependsOnQuestionOrder == parentOrder)">
+                                            Soru @parentOrder: @Model.Questions[parentIndex].Text
+                                        </option>
+                                    }
+
+                                </select>
+
+                            </div>
+
+
+                            <div class="edit-field">
+
+                                <label>
+                                    Koşul
+                                </label>
+
+                                <select name="Questions[@i].ConditionOperator"
+                                        class="edit-operator-select">
+
+                                    <option value="">
+                                        Koşul yok
+                                    </option>
+
+                                    <option value="1"
+                                            selected="@(question.ConditionOperator == BranchConditionOperator.Equals)">
+                                        Eşitse
+                                    </option>
+
+                                    <option value="2"
+                                            selected="@(question.ConditionOperator == BranchConditionOperator.NotEquals)">
+                                        Eşit değilse
+                                    </option>
+
+                                    <option value="3"
+                                            selected="@(question.ConditionOperator == BranchConditionOperator.LessThan)">
+                                        Küçükse
+                                    </option>
+
+                                    <option value="4"
+                                            selected="@(question.ConditionOperator == BranchConditionOperator.LessThanOrEqual)">
+                                        Küçük veya eşitse
+                                    </option>
+
+                                    <option value="5"
+                                            selected="@(question.ConditionOperator == BranchConditionOperator.GreaterThan)">
+                                        Büyükse
+                                    </option>
+
+                                    <option value="6"
+                                            selected="@(question.ConditionOperator == BranchConditionOperator.GreaterThanOrEqual)">
+                                        Büyük veya eşitse
+                                    </option>
+
+                                    <option value="7"
+                                            selected="@(question.ConditionOperator == BranchConditionOperator.Contains)">
+                                        İçeriyorsa
+                                    </option>
+
+                                    <option value="8"
+                                            selected="@(question.ConditionOperator == BranchConditionOperator.Answered)">
+                                        Cevaplandıysa
+                                    </option>
+
+                                    <option value="9"
+                                            selected="@(question.ConditionOperator == BranchConditionOperator.NotAnswered)">
+                                        Cevaplanmadıysa
+                                    </option>
+
+                                </select>
+
+                            </div>
+
+
+                            <div class="edit-field full">
+
+                                <label>
+                                    Koşul Değeri
+                                </label>
+
+                                <input type="text"
+                                       name="Questions[@i].ShowWhenAnswerEquals"
+                                       class="edit-condition-value"
+                                       value="@question.ShowWhenAnswerEquals"
+                                       placeholder="Örn: Evet veya 2" />
+
+                            </div>
+
+                        </div>
+
+                    </div>
+
+                </article>
+            }
+
+        </section>
+
+
+        <div class="edit-actions">
+
+            <a asp-controller="Survey"
+               asp-action="Index"
+               class="edit-cancel">
+                Vazgeç
+            </a>
+
+            <button type="submit"
+                    class="edit-save">
+                Değişiklikleri Kaydet
+            </button>
+
+        </div>
+
+    </form>
+
+</section>
+
+
+@section Scripts {
+
+    <partial name="_ValidationScriptsPartial" />
+
+    <script>
+        (() => {
+
+            const button =
+                document.getElementById(
+                    "applyMasterRule"
+                );
+
+            const masterParent =
+                document.getElementById(
+                    "masterParent"
+                );
+
+            const masterValue =
+                document.getElementById(
+                    "masterValue"
+                );
+
+
+            button?.addEventListener(
+                "click",
+                () => {
+
+                    const parentOrder =
+                        Number(
+                            masterParent?.value ?? 0
+                        );
+
+                    const expected =
+                        masterValue?.value?.trim() ?? "";
+
+
+                    if (parentOrder <= 0) {
+                        alert(
+                            "Önce ana soruyu seçmelisin."
+                        );
+                        return;
+                    }
+
+
+                    if (!expected) {
+                        alert(
+                            "Devam edilmesini sağlayacak cevabı yazmalısın. Örneğin: Evet"
+                        );
+                        return;
+                    }
+
+
+                    const questions =
+                        document.querySelectorAll(
+                            ".edit-question"
+                        );
+
+
+                    let changed =
+                        0;
+
+
+                    questions.forEach(
+                        question => {
+
+                            const order =
+                                Number(
+                                    question.dataset.questionOrder ?? 0
+                                );
+
+
+                            if (order <= parentOrder) {
+                                return;
+                            }
+
+
+                            const parentSelect =
+                                question.querySelector(
+                                    ".edit-parent-select"
+                                );
+
+
+                            const operatorSelect =
+                                question.querySelector(
+                                    ".edit-operator-select"
+                                );
+
+
+                            const valueInput =
+                                question.querySelector(
+                                    ".edit-condition-value"
+                                );
+
+
+                            /*
+                             * Zaten özel dinamik kuralı varsa
+                             * onu bozmuyoruz.
+                             *
+                             * Örn:
+                             * "1-2 yıldızsa neden düşük verdin?"
+                             * kuralı olduğu gibi kalır.
+                             */
+                            if (
+                                parentSelect?.value
+                            ) {
+                                return;
+                            }
+
+
+                            parentSelect.value =
+                                String(parentOrder);
+
+
+                            operatorSelect.value =
+                                "1"; // Equals
+
+
+                            valueInput.value =
+                                expected;
+
+
+                            changed++;
+                        }
+                    );
+
+
+                    alert(
+                        `${changed} koşulsuz soru, Soru ${parentOrder} = "${expected}" koşuluna bağlandı.`
+                    );
+
+                }
+            );
+
+        })();
+    </script>
+
+}
+
+
+@functions {
+
+    private static string GetQuestionTypeText(
+        QuestionType type)
+    {
+        return type switch
+        {
+            QuestionType.SingleChoice =>
+                "Tek Seçim",
+
+            QuestionType.MultipleChoice =>
+                "Çoklu Seçim",
+
+            QuestionType.ShortText =>
+                "Kısa Metin",
+
+            QuestionType.LongText =>
+                "Uzun Metin",
+
+            QuestionType.Rating =>
+                "Yıldız / Puan",
+
+            QuestionType.Likert =>
+                "Likert",
+
+            QuestionType.Number =>
+                "Sayı",
+
+            QuestionType.YesNo =>
+                "Evet / Hayır",
+
+            _ =>
+                type.ToString()
+        };
+    }
+
+}

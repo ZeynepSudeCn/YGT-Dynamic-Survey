@@ -1,0 +1,337 @@
+@model YGT.DynamicSurvey.Models.ViewModels.Account.RegisterViewModel
+
+@{
+    ViewData["Title"] = "Kayıt Ol";
+}
+
+<section class="auth-page">
+
+    <div class="container">
+
+        <div class="auth-card">
+
+            <h2 class="text-center mb-4">
+                Kayıt Ol
+            </h2>
+
+
+            <form asp-controller="Account"
+                  asp-action="Register"
+                  method="post">
+
+                @Html.AntiForgeryToken()
+
+
+                <div asp-validation-summary="ModelOnly"
+                     class="text-danger mb-3">
+                </div>
+
+
+                <!-- =========================================
+                     AD SOYAD
+                ========================================== -->
+
+                <div class="mb-3">
+
+                    <label asp-for="FullName"
+                           class="form-label">
+                    </label>
+
+                    <input asp-for="FullName"
+                           class="form-control" />
+
+                    <span asp-validation-for="FullName"
+                          class="text-danger">
+                    </span>
+
+                </div>
+
+
+                <!-- =========================================
+                     E-POSTA
+                ========================================== -->
+
+                <div class="mb-3">
+
+                    <label asp-for="Email"
+                           class="form-label">
+                    </label>
+
+                    <input asp-for="Email"
+                           class="form-control" />
+
+                    <span asp-validation-for="Email"
+                          class="text-danger">
+                    </span>
+
+                </div>
+
+
+                <!-- =========================================
+                     ŞİFRE
+                ========================================== -->
+
+                <div class="mb-3">
+
+                    <label asp-for="Password"
+                           class="form-label">
+                    </label>
+
+                    <input asp-for="Password"
+                           class="form-control" />
+
+                    <span asp-validation-for="Password"
+                          class="text-danger">
+                    </span>
+
+                </div>
+
+
+                <!-- =========================================
+                     ŞİFRE TEKRAR
+                ========================================== -->
+
+                <div class="mb-3">
+
+                    <label asp-for="ConfirmPassword"
+                           class="form-label">
+                    </label>
+
+                    <input asp-for="ConfirmPassword"
+                           class="form-control" />
+
+                    <span asp-validation-for="ConfirmPassword"
+                          class="text-danger">
+                    </span>
+
+                </div>
+
+
+                <!-- =========================================
+                     HESAP TÜRÜ
+                ========================================== -->
+
+                <div class="mb-4">
+
+                    <label class="form-label">
+                        Nasıl kayıt olmak istiyorsunuz?
+                    </label>
+
+
+                    <div class="account-type-grid">
+
+
+                        <!-- NORMAL KULLANICI -->
+
+                        <label class="account-type-card">
+
+                            <input asp-for="AccountType"
+                                   type="radio"
+                                   value="User"
+                                   class="account-type-radio" />
+
+                            <span class="account-type-content">
+
+                                <span class="account-type-icon">
+                                    👤
+                                </span>
+
+                                <strong>
+                                    Kullanıcı
+                                </strong>
+
+                                <small>
+                                    Anket oluşturabilir,
+                                    paylaşabilir ve sonuçlarını
+                                    görüntüleyebilirsiniz.
+                                </small>
+
+                            </span>
+
+                        </label>
+
+
+                        <!-- YÖNETİCİ ADAYI -->
+
+                        <label class="account-type-card">
+
+                            <input asp-for="AccountType"
+                                   type="radio"
+                                   value="AdminRequest"
+                                   class="account-type-radio" />
+
+                            <span class="account-type-content">
+
+                                <span class="account-type-icon">
+                                    🛡️
+                                </span>
+
+                                <strong>
+                                    Yönetici
+                                </strong>
+
+                                <small>
+                                    Yönetici başvurunuz ana yönetici
+                                    tarafından onaylanmalıdır.
+                                </small>
+
+                            </span>
+
+                        </label>
+
+                    </div>
+
+
+                    <span asp-validation-for="AccountType"
+                          class="text-danger">
+                    </span>
+
+                </div>
+
+
+                <!-- =========================================
+                     KVKK
+                ========================================== -->
+
+                <div class="form-check mb-3">
+
+                    <input asp-for="HasReadKvkkNotice"
+                           class="form-check-input" />
+
+                    <label class="form-check-label">
+
+                        <a asp-controller="Legal"
+                           asp-action="KvkkNotice"
+                           target="_blank">
+
+                            KVKK Aydınlatma Metni'ni
+
+                        </a>
+
+                        okudum.
+
+                    </label>
+
+
+                    <div>
+
+                        <span asp-validation-for="HasReadKvkkNotice"
+                              class="text-danger">
+                        </span>
+
+                    </div>
+
+                </div>
+
+
+                <!-- =========================================
+                     KULLANIM KOŞULLARI
+                ========================================== -->
+
+                <div class="form-check mb-3">
+
+                    <input asp-for="AcceptedTerms"
+                           class="form-check-input" />
+
+                    <label class="form-check-label">
+
+                        <a asp-controller="Legal"
+                           asp-action="TermsOfUse"
+                           target="_blank">
+
+                            Kullanım Koşulları'nı
+
+                        </a>
+
+                        okudum ve kabul ediyorum.
+
+                    </label>
+
+
+                    <div>
+
+                        <span asp-validation-for="AcceptedTerms"
+                              class="text-danger">
+                        </span>
+
+                    </div>
+
+                </div>
+
+
+                <!-- =========================================
+                     DUYURU İZNİ
+                ========================================== -->
+
+                <div class="form-check mb-4">
+
+                    <input asp-for="AnnouncementConsent"
+                           class="form-check-input" />
+
+                    <label asp-for="AnnouncementConsent"
+                           class="form-check-label">
+                    </label>
+
+                </div>
+
+
+                <!-- =========================================
+                     KAYIT
+                ========================================== -->
+
+                <button type="submit"
+                        class="btn btn-primary w-100">
+
+                    Kayıt Ol
+
+                </button>
+
+
+                <!-- =========================================
+                     GİRİŞLER
+                ========================================== -->
+
+                <div class="register-login-choice">
+
+                    <p>
+                        Zaten bir hesabınız var mı?
+                    </p>
+
+
+                    <div class="register-login-buttons">
+
+                        <a asp-controller="Account"
+                           asp-action="Login"
+                           class="register-login-user">
+
+                            👤 Kullanıcı Girişi
+
+                        </a>
+
+
+                        <a asp-controller="Admin"
+                           asp-action="Login"
+                           class="register-login-admin">
+
+                            🛡️ Yönetici Girişi
+
+                        </a>
+
+                    </div>
+
+                </div>
+
+            </form>
+
+        </div>
+
+    </div>
+
+</section>
+
+
+@section Scripts {
+
+    <partial name="_ValidationScriptsPartial" />
+
+}

@@ -1,0 +1,1176 @@
+@model YGT.DynamicSurvey.Models.ViewModels.Survey.TakeSurveyViewModel
+@using YGT.DynamicSurvey.Models
+
+@{
+    ViewData["Title"] = Model.Title;
+}
+
+<style>
+    #dynamicSurveyTake {
+        width: 100%;
+        max-width: 860px;
+        margin: 0 auto;
+        padding: 28px 20px 60px;
+    }
+
+    #dynamicSurveyTake * {
+        box-sizing: border-box;
+    }
+
+    .dst-header {
+        margin-bottom: 18px;
+        padding: 24px;
+        border: 1px solid #e4e7ec;
+        border-radius: 17px;
+        background: linear-gradient(135deg, #fff, #f7f9ff);
+        box-shadow: 0 8px 26px rgba(16,24,40,.05);
+    }
+
+    .dst-header-eyebrow {
+        display: inline-flex;
+        margin-bottom: 7px;
+        color: #1769e0;
+        font-size: .72rem;
+        font-weight: 800;
+        letter-spacing: .08em;
+    }
+
+    .dst-header h1 {
+        margin: 0 0 8px;
+        color: #101828;
+        font-size: 2rem;
+        line-height: 1.15;
+    }
+
+    .dst-header p {
+        margin: 0;
+        color: #667085;
+        line-height: 1.65;
+    }
+
+    .dst-progress-card {
+        margin-bottom: 14px;
+        padding: 14px 16px;
+        border: 1px solid #e4e7ec;
+        border-radius: 12px;
+        background: #fff;
+    }
+
+    .dst-progress-top {
+        display: flex;
+        justify-content: space-between;
+        gap: 10px;
+        margin-bottom: 8px;
+        color: #475467;
+        font-size: .76rem;
+        font-weight: 700;
+    }
+
+    .dst-progress-track {
+        height: 7px;
+        overflow: hidden;
+        border-radius: 999px;
+        background: #eef2f6;
+    }
+
+    .dst-progress-fill {
+        width: 0;
+        height: 100%;
+        border-radius: inherit;
+        background: linear-gradient(90deg, #1769e0, #7f56d9);
+        transition: width .25s ease;
+    }
+
+    .dst-question {
+        display: none;
+        min-height: 330px;
+        padding: 28px;
+        border: 1px solid #e4e7ec;
+        border-radius: 17px;
+        background: #fff;
+        box-shadow: 0 8px 26px rgba(16,24,40,.05);
+    }
+
+    .dst-question.is-current {
+        display: block;
+    }
+
+    .dst-question-top {
+        display: flex;
+        align-items: flex-start;
+        justify-content: space-between;
+        gap: 12px;
+        margin-bottom: 22px;
+    }
+
+    .dst-question-no {
+        display: inline-block;
+        margin-bottom: 6px;
+        color: #1769e0;
+        font-size: .72rem;
+        font-weight: 850;
+        letter-spacing: .07em;
+    }
+
+    .dst-question h2 {
+        margin: 0;
+        color: #101828;
+        font-size: 1.25rem;
+        line-height: 1.45;
+    }
+
+    .dst-required {
+        color: #d92d20;
+        font-size: .72rem;
+        font-weight: 800;
+        white-space: nowrap;
+    }
+
+    .dst-required::before {
+        content: "* ";
+    }
+
+    .dst-options {
+        display: grid;
+        gap: 10px;
+    }
+
+    .dst-option {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        min-height: 50px;
+        padding: 12px 14px;
+        border: 1px solid #e4e7ec;
+        border-radius: 11px;
+        background: #fafbfc;
+        cursor: pointer;
+        transition: .15s ease;
+    }
+
+    .dst-option:hover {
+        border-color: #b2ccff;
+        background: #f5f8ff;
+    }
+
+    .dst-option input {
+        width: 18px;
+        height: 18px;
+        accent-color: #1769e0;
+    }
+
+    .dst-text-input,
+    .dst-number-input,
+    .dst-textarea {
+        width: 100%;
+        border: 1px solid #d0d5dd;
+        border-radius: 10px;
+        background: #fff;
+        font-size: .95rem;
+    }
+
+    .dst-text-input,
+    .dst-number-input {
+        min-height: 48px;
+        padding: 0 13px;
+    }
+
+    .dst-textarea {
+        min-height: 135px;
+        padding: 12px 13px;
+        resize: vertical;
+    }
+
+    .dst-rating {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        flex-wrap: wrap;
+    }
+
+    .dst-star-label {
+        position: relative;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        padding: 0;
+        border: none;
+        background: transparent;
+        cursor: pointer;
+        user-select: none;
+    }
+
+    .dst-star-input {
+        position: absolute;
+        width: 1px;
+        height: 1px;
+        opacity: 0;
+        pointer-events: none;
+    }
+
+    .dst-star {
+        display: block;
+        color: #d0d5dd;
+        font-size: 2.7rem;
+        line-height: 1;
+        transition:
+            color .15s ease,
+            transform .15s ease;
+    }
+
+    .dst-star-label:hover .dst-star {
+        transform: scale(1.08);
+    }
+
+    .dst-star-label.is-selected .dst-star,
+    .dst-star-label.is-hovered .dst-star {
+        color: #fdb022;
+    }
+
+    .dst-navigation {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 10px;
+        margin-top: 16px;
+    }
+
+    .dst-nav-left,
+    .dst-nav-right {
+        display: flex;
+        gap: 10px;
+    }
+
+    .dst-btn {
+        min-height: 45px;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        padding: 0 18px;
+        border-radius: 10px;
+        font-size: .82rem;
+        font-weight: 760;
+        cursor: pointer;
+    }
+
+    .dst-btn.secondary {
+        border: 1px solid #d0d5dd;
+        background: #fff;
+        color: #344054;
+    }
+
+    .dst-btn.primary {
+        border: 1px solid #1769e0;
+        background: #1769e0;
+        color: #fff;
+    }
+
+    .dst-btn.success {
+        border: 1px solid #079455;
+        background: #079455;
+        color: #fff;
+    }
+
+    .dst-btn[hidden] {
+        display: none !important;
+    }
+
+    .dst-validation {
+        display: none;
+        margin-top: 14px;
+        padding: 10px 12px;
+        border: 1px solid #fecdca;
+        border-radius: 9px;
+        background: #fff6f5;
+        color: #b42318;
+        font-size: .78rem;
+        font-weight: 700;
+    }
+
+    .dst-validation.show {
+        display: block;
+    }
+
+    @@media (max-width: 600px) {
+        #dynamicSurveyTake {
+            padding: 18px 12px 40px;
+        }
+
+        .dst-question {
+            min-height: 0;
+            padding: 20px 16px;
+        }
+
+        .dst-navigation {
+            align-items: stretch;
+            flex-direction: column;
+        }
+
+        .dst-nav-left,
+        .dst-nav-right {
+            width: 100%;
+        }
+
+        .dst-btn {
+            flex: 1;
+        }
+    }
+</style>
+
+<section id="dynamicSurveyTake">
+
+    <header class="dst-header">
+        <span class="dst-header-eyebrow">
+            DİNAMİK ANKET · KOD @Model.Code
+        </span>
+
+        <h1>@Model.Title</h1>
+
+        @if (!string.IsNullOrWhiteSpace(Model.Description))
+        {
+            <p>@Model.Description</p>
+        }
+    </header>
+
+    <div class="dst-progress-card">
+        <div class="dst-progress-top">
+            <span id="questionStepLabel">Soru 1</span>
+            <span id="progressText">1. adım</span>
+        </div>
+
+        <div class="dst-progress-track">
+            <div id="progressFill"
+                 class="dst-progress-fill"></div>
+        </div>
+    </div>
+
+    <form asp-controller="Survey"
+          asp-action="Submit"
+          method="post"
+          id="dynamicSurveyForm">
+
+        @Html.AntiForgeryToken()
+
+        <input type="hidden"
+               asp-for="SurveyId" />
+
+        <div asp-validation-summary="ModelOnly"
+             class="alert alert-danger"></div>
+
+        <div id="questionStage">
+
+            @for (var i = 0; i < Model.Questions.Count; i++)
+            {
+                var question = Model.Questions[i];
+
+                var answer =
+                    Model.Answers.Count > i
+                        ? Model.Answers[i]
+                        : new YGT.DynamicSurvey.Models.ViewModels.Survey.SurveyAnswerInputViewModel
+                        {
+                            QuestionId = question.Id
+                        };
+
+                <article class="dst-question"
+                         data-array-index="@i"
+                         data-question-order="@question.Order"
+                         data-depends-on="@(question.DependsOnQuestionOrder?.ToString() ?? "")"
+                         data-condition-operator="@(question.ConditionOperator?.ToString() ?? "")"
+                         data-show-when="@question.ShowWhenAnswerEquals">
+
+                    <input type="hidden"
+                           name="Answers[@i].QuestionId"
+                           value="@question.Id"
+                           class="dst-question-id" />
+
+                    <div class="dst-question-top">
+                        <div>
+                            <span class="dst-question-no">SORU</span>
+                            <h2>@question.Text</h2>
+                        </div>
+
+                        @if (question.IsRequired)
+                        {
+                            <span class="dst-required">Zorunlu</span>
+                        }
+                    </div>
+
+                    @if (question.Type == QuestionType.SingleChoice ||
+                         question.Type == QuestionType.Likert ||
+                         question.Type == QuestionType.YesNo)
+                    {
+                        <div class="dst-options">
+                            @foreach (var option in question.Options)
+                            {
+                                var isChecked =
+                                    answer.SelectedOptionIds.Contains(option.Id);
+
+                                <label class="dst-option">
+                                    <input type="radio"
+                                           name="Answers[@i].SelectedOptionIds"
+                                           value="@option.Id"
+                                           data-answer-text="@option.Text"
+                                           class="dst-answer-control"
+                                           @(isChecked ? "checked" : "") />
+
+                                    <span>@option.Text</span>
+                                </label>
+                            }
+                        </div>
+                    }
+                    else if (question.Type == QuestionType.MultipleChoice)
+                    {
+                        <div class="dst-options">
+                            @foreach (var option in question.Options)
+                            {
+                                var isChecked =
+                                    answer.SelectedOptionIds.Contains(option.Id);
+
+                                <label class="dst-option">
+                                    <input type="checkbox"
+                                           name="Answers[@i].SelectedOptionIds"
+                                           value="@option.Id"
+                                           data-answer-text="@option.Text"
+                                           class="dst-answer-control"
+                                           @(isChecked ? "checked" : "") />
+
+                                    <span>@option.Text</span>
+                                </label>
+                            }
+                        </div>
+                    }
+                    else if (question.Type == QuestionType.ShortText)
+                    {
+                        <input type="text"
+                               name="Answers[@i].Value"
+                               value="@answer.Value"
+                               class="dst-text-input dst-answer-control"
+                               placeholder="Yanıtını yaz..." />
+                    }
+                    else if (question.Type == QuestionType.LongText)
+                    {
+                        <textarea name="Answers[@i].Value"
+                                  class="dst-textarea dst-answer-control"
+                                  placeholder="Yanıtını yaz...">@answer.Value</textarea>
+                    }
+                    else if (question.Type == QuestionType.Number)
+                    {
+                        <input type="number"
+                               step="any"
+                               name="Answers[@i].Value"
+                               value="@answer.Value"
+                               class="dst-number-input dst-answer-control"
+                               placeholder="Sayısal yanıt" />
+                    }
+                    else if (question.Type == QuestionType.Rating)
+                    {
+                        var max = question.RatingMaxValue ?? 5;
+
+                        <div class="dst-rating"
+                             data-rating-group>
+
+                            @for (var rating = 1; rating <= max; rating++)
+                            {
+                                var checkedRating =
+                                    answer.Value == rating.ToString();
+
+                                var ratingEmojis = new[] { "😞", "🙁", "😐", "🙂", "🤩" };
+                                var ratingLabels = new[] { "Hiç keyifli değildi", "Keyifsizdi", "Kararsızım", "Keyifliydi", "Çok keyifliydi" };
+                                var emojiIndex = Math.Min(rating - 1, 4);
+
+                                <label class="dst-star-label dst-emoji-label"
+                                       title="@rating - @ratingLabels[emojiIndex]">
+
+                                    <input type="radio"
+                                           name="Answers[@i].Value"
+                                           value="@rating"
+                                           data-answer-text="@rating"
+                                           class="dst-answer-control dst-star-input"
+                                           @(checkedRating ? "checked" : "") />
+
+                                    <span class="dst-star dst-emoji" aria-hidden="true">@ratingEmojis[emojiIndex]</span>
+                                    <small>@rating</small>
+                                    <em>@ratingLabels[emojiIndex]</em>
+
+                                </label>
+                            }
+
+                        </div>
+                    }
+
+                    <div class="dst-validation">
+                        Bu soruyu cevaplamadan devam edemezsin.
+                    </div>
+
+                </article>
+            }
+
+        </div>
+
+        <div class="dst-navigation">
+
+            <div class="dst-nav-left">
+                <button type="button"
+                        id="previousQuestionButton"
+                        class="dst-btn secondary"
+                        hidden>
+                    ← Geri
+                </button>
+            </div>
+
+            <div class="dst-nav-right">
+                <button type="button"
+                        id="nextQuestionButton"
+                        class="dst-btn primary">
+                    İleri →
+                </button>
+
+                <button type="submit"
+                        id="submitSurveyButton"
+                        class="dst-btn success"
+                        hidden>
+                    Yanıtları Gönder ✓
+                </button>
+            </div>
+
+        </div>
+
+    </form>
+
+</section>
+
+
+@section Scripts {
+
+    <partial name="_ValidationScriptsPartial" />
+
+    <script>
+        (() => {
+
+            const form = document.getElementById("dynamicSurveyForm");
+            if (!form) return;
+
+            const allQuestions =
+                [...form.querySelectorAll(".dst-question")];
+
+            const previousButton =
+                document.getElementById("previousQuestionButton");
+
+            const nextButton =
+                document.getElementById("nextQuestionButton");
+
+            const submitButton =
+                document.getElementById("submitSurveyButton");
+
+            const stepLabel =
+                document.getElementById("questionStepLabel");
+
+            const progressText =
+                document.getElementById("progressText");
+
+            const progressFill =
+                document.getElementById("progressFill");
+
+            let currentQuestion = null;
+            const history = [];
+
+
+            function compareText(actual, expected) {
+                return String(actual ?? "")
+                    .localeCompare(
+                        String(expected ?? ""),
+                        "tr",
+                        { sensitivity: "base" }
+                    ) === 0;
+            }
+
+
+            function updateStarRatings() {
+
+                document
+                    .querySelectorAll("[data-rating-group]")
+                    .forEach(group => {
+
+                        const labels =
+                            [...group.querySelectorAll(".dst-star-label")];
+
+                        const checked =
+                            group.querySelector(".dst-star-input:checked");
+
+                        const selectedValue =
+                            checked
+                                ? Number(checked.value)
+                                : 0;
+
+                        labels.forEach(
+                            (label, index) => {
+
+                                label.classList.toggle(
+                                    "is-selected",
+                                    index === selectedValue - 1
+                                );
+                            }
+                        );
+                    });
+            }
+
+
+            function initializeStarHover() {
+
+                document
+                    .querySelectorAll("[data-rating-group]")
+                    .forEach(group => {
+
+                        const labels =
+                            [...group.querySelectorAll(".dst-star-label")];
+
+                        labels.forEach(
+                            (label, index) => {
+
+                                label.addEventListener(
+                                    "mouseenter",
+                                    () => {
+
+                                        labels.forEach(
+                                            (item, itemIndex) => {
+
+                                                item.classList.toggle(
+                                                    "is-hovered",
+                                                    itemIndex === index
+                                                );
+                                            }
+                                        );
+                                    }
+                                );
+                            }
+                        );
+
+                        group.addEventListener(
+                            "mouseleave",
+                            () => {
+
+                                labels.forEach(
+                                    label =>
+                                        label.classList.remove("is-hovered")
+                                );
+
+                                updateStarRatings();
+                            }
+                        );
+                    });
+            }
+
+
+            function parseNumber(value) {
+                const normalized =
+                    String(value ?? "")
+                        .trim()
+                        .replace(",", ".");
+
+                const number = Number(normalized);
+
+                return Number.isFinite(number)
+                    ? number
+                    : null;
+            }
+
+
+            function getQuestionByOrder(order) {
+                return allQuestions.find(
+                    q =>
+                        Number(q.dataset.questionOrder) ===
+                        Number(order)
+                );
+            }
+
+
+            function getAnswerTexts(question) {
+
+                if (!question) return [];
+
+                const checked =
+                    [...question.querySelectorAll(
+                        ".dst-answer-control:checked"
+                    )];
+
+                if (checked.length > 0) {
+                    return checked
+                        .map(
+                            input =>
+                                input.dataset.answerText ??
+                                input.value
+                        )
+                        .filter(Boolean);
+                }
+
+                const textControl =
+                    question.querySelector(
+                        "input[type='text'].dst-answer-control, " +
+                        "input[type='number'].dst-answer-control, " +
+                        "textarea.dst-answer-control"
+                    );
+
+                if (
+                    textControl &&
+                    textControl.value.trim()
+                ) {
+                    return [textControl.value.trim()];
+                }
+
+                return [];
+            }
+
+
+            function branchMatches(question, visited = new Set()) {
+
+                const order =
+                    Number(question.dataset.questionOrder || 0);
+
+                if (visited.has(order)) return false;
+                visited.add(order);
+
+                const dependsOn =
+                    Number(question.dataset.dependsOn || 0);
+
+                const operator =
+                    question.dataset.conditionOperator || "";
+
+                const expected =
+                    (question.dataset.showWhen || "").trim();
+
+                if (
+                    dependsOn <= 0 ||
+                    !operator
+                ) {
+                    return true;
+                }
+
+                const parent =
+                    getQuestionByOrder(dependsOn);
+
+                if (!parent) return false;
+
+                if (!branchMatches(parent, visited)) {
+                    return false;
+                }
+
+                const answers =
+                    getAnswerTexts(parent);
+
+                const hasAnswer =
+                    answers.length > 0;
+
+                if (operator === "Answered") {
+                    return hasAnswer;
+                }
+
+                if (operator === "NotAnswered") {
+                    return !hasAnswer;
+                }
+
+                if (!hasAnswer) return false;
+
+                if (operator === "Contains") {
+                    return answers.some(
+                        answer =>
+                            String(answer)
+                                .toLocaleLowerCase("tr-TR")
+                                .includes(
+                                    expected.toLocaleLowerCase("tr-TR")
+                                )
+                    );
+                }
+
+                if (operator === "NotEquals") {
+                    return answers.every(
+                        answer =>
+                            !compareText(answer, expected)
+                    );
+                }
+
+                if (
+                    operator === "LessThan" ||
+                    operator === "LessThanOrEqual" ||
+                    operator === "GreaterThan" ||
+                    operator === "GreaterThanOrEqual"
+                ) {
+                    const expectedNumber =
+                        parseNumber(expected);
+
+                    if (expectedNumber === null) {
+                        return false;
+                    }
+
+                    return answers.some(
+                        answer => {
+
+                            const actualNumber =
+                                parseNumber(answer);
+
+                            if (actualNumber === null) {
+                                return false;
+                            }
+
+                            switch (operator) {
+                                case "LessThan":
+                                    return actualNumber < expectedNumber;
+                                case "LessThanOrEqual":
+                                    return actualNumber <= expectedNumber;
+                                case "GreaterThan":
+                                    return actualNumber > expectedNumber;
+                                case "GreaterThanOrEqual":
+                                    return actualNumber >= expectedNumber;
+                                default:
+                                    return false;
+                            }
+                        }
+                    );
+                }
+
+                return answers.some(
+                    answer =>
+                        compareText(answer, expected)
+                );
+            }
+
+
+            function isRequired(question) {
+                return question.querySelector(".dst-required") !== null;
+            }
+
+
+            function isAnswered(question) {
+                return getAnswerTexts(question).length > 0;
+            }
+
+
+            function validateCurrent() {
+
+                if (!currentQuestion) return true;
+
+                const validation =
+                    currentQuestion.querySelector(".dst-validation");
+
+                if (
+                    isRequired(currentQuestion) &&
+                    !isAnswered(currentQuestion)
+                ) {
+                    validation?.classList.add("show");
+                    return false;
+                }
+
+                validation?.classList.remove("show");
+                return true;
+            }
+
+
+            function clearQuestionAnswer(question) {
+
+                question
+                    .querySelectorAll(".dst-answer-control")
+                    .forEach(
+                        control => {
+
+                            if (
+                                control instanceof HTMLInputElement &&
+                                (
+                                    control.type === "radio" ||
+                                    control.type === "checkbox"
+                                )
+                            ) {
+                                control.checked = false;
+                            }
+                            else if (
+                                control instanceof HTMLInputElement ||
+                                control instanceof HTMLTextAreaElement
+                            ) {
+                                control.value = "";
+                            }
+                        }
+                    );
+            }
+
+
+            function synchronizeHiddenQuestions() {
+
+                allQuestions.forEach(
+                    question => {
+
+                        const visible =
+                            branchMatches(question);
+
+                        question
+                            .querySelectorAll(".dst-answer-control")
+                            .forEach(
+                                control => {
+                                    control.disabled = !visible;
+                                }
+                            );
+
+                        if (!visible) {
+                            clearQuestionAnswer(question);
+                        }
+                    }
+                );
+            }
+
+
+            function getNextVisibleQuestion(afterQuestion) {
+
+                synchronizeHiddenQuestions();
+
+                const currentIndex =
+                    afterQuestion
+                        ? allQuestions.indexOf(afterQuestion)
+                        : -1;
+
+                for (
+                    let i = currentIndex + 1;
+                    i < allQuestions.length;
+                    i++
+                ) {
+                    if (branchMatches(allQuestions[i])) {
+                        return allQuestions[i];
+                    }
+                }
+
+                return null;
+            }
+
+
+            function hasNextVisibleQuestion(question) {
+
+                const currentIndex =
+                    allQuestions.indexOf(question);
+
+                for (
+                    let i = currentIndex + 1;
+                    i < allQuestions.length;
+                    i++
+                ) {
+                    if (branchMatches(allQuestions[i])) {
+                        return true;
+                    }
+                }
+
+                return false;
+            }
+
+
+            function renderQuestion(question) {
+
+                allQuestions.forEach(
+                    item =>
+                        item.classList.remove("is-current")
+                );
+
+                currentQuestion = question;
+                if (!currentQuestion) return;
+
+                currentQuestion.classList.add("is-current");
+
+                const visibleStep =
+                    history.length + 1;
+
+                const numberLabel =
+                    currentQuestion.querySelector(".dst-question-no");
+
+                if (numberLabel) {
+                    numberLabel.textContent =
+                        `SORU ${visibleStep}`;
+                }
+
+                if (stepLabel) {
+                    stepLabel.textContent =
+                        `Soru ${visibleStep}`;
+                }
+
+                if (progressText) {
+                    progressText.textContent =
+                        `${visibleStep}. adım`;
+                }
+
+                const physicalIndex =
+                    allQuestions.indexOf(currentQuestion) + 1;
+
+                if (progressFill) {
+                    progressFill.style.width =
+                        `${Math.max(
+                            8,
+                            Math.round(
+                                physicalIndex /
+                                Math.max(allQuestions.length, 1) *
+                                100
+                            )
+                        )}%`;
+                }
+
+                previousButton.hidden =
+                    history.length === 0;
+
+                const nextExists =
+                    hasNextVisibleQuestion(currentQuestion);
+
+                nextButton.hidden = !nextExists;
+                submitButton.hidden = nextExists;
+
+                currentQuestion.scrollIntoView(
+                    {
+                        behavior: "smooth",
+                        block: "center"
+                    }
+                );
+            }
+
+
+            nextButton.addEventListener(
+                "click",
+                () => {
+
+                    if (!validateCurrent()) return;
+
+                    synchronizeHiddenQuestions();
+
+                    const next =
+                        getNextVisibleQuestion(currentQuestion);
+
+                    if (!next) {
+                        nextButton.hidden = true;
+                        submitButton.hidden = false;
+                        return;
+                    }
+
+                    history.push(currentQuestion);
+                    renderQuestion(next);
+                }
+            );
+
+
+            previousButton.addEventListener(
+                "click",
+                () => {
+
+                    if (history.length === 0) return;
+
+                    const previous =
+                        history.pop();
+
+                    renderQuestion(previous);
+                }
+            );
+
+
+            form.addEventListener(
+                "change",
+                () => {
+
+                    updateStarRatings();
+
+                    currentQuestion
+                        ?.querySelector(".dst-validation")
+                        ?.classList.remove("show");
+
+                    synchronizeHiddenQuestions();
+
+                    if (!currentQuestion) return;
+
+                    const nextExists =
+                        hasNextVisibleQuestion(currentQuestion);
+
+                    nextButton.hidden = !nextExists;
+                    submitButton.hidden = nextExists;
+                    saveDraft();
+                }
+            );
+
+
+            form.addEventListener(
+                "input",
+                () => {
+
+                    currentQuestion
+                        ?.querySelector(".dst-validation")
+                        ?.classList.remove("show");
+                    saveDraft();
+                }
+            );
+
+
+            form.addEventListener(
+                "submit",
+                event => {
+
+                    if (!validateCurrent()) {
+                        event.preventDefault();
+                        return;
+                    }
+
+                    synchronizeHiddenQuestions();
+
+                    for (const question of allQuestions) {
+
+                        if (!branchMatches(question)) {
+                            continue;
+                        }
+
+                        if (
+                            isRequired(question) &&
+                            !isAnswered(question)
+                        ) {
+                            event.preventDefault();
+
+                            alert(
+                                "Lütfen tüm zorunlu soruları cevaplayın."
+                            );
+
+                            return;
+                        }
+                    }
+                }
+            );
+
+
+            const draftKey = `ygt-survey-draft-${form.querySelector("[name='SurveyId']")?.value || "unknown"}`;
+
+            function saveDraft() {
+                const values = {};
+                new FormData(form).forEach((value, key) => {
+                    if (key === "__RequestVerificationToken") return;
+                    values[key] = values[key] ? [].concat(values[key], value) : value;
+                });
+                localStorage.setItem(draftKey, JSON.stringify(values));
+            }
+
+            function restoreDraft() {
+                const raw = localStorage.getItem(draftKey);
+                if (!raw) return;
+                try {
+                    const values = JSON.parse(raw);
+                    Object.entries(values).forEach(([name, stored]) => {
+                        const wanted = [].concat(stored).map(String);
+                        form.querySelectorAll(`[name="${CSS.escape(name)}"]`).forEach(control => {
+                            if (control.type === "radio" || control.type === "checkbox") control.checked = wanted.includes(control.value);
+                            else if (wanted.length) control.value = wanted[0];
+                        });
+                    });
+                } catch { localStorage.removeItem(draftKey); }
+            }
+
+            restoreDraft();
+            synchronizeHiddenQuestions();
+
+            initializeStarHover();
+            updateStarRatings();
+
+            const first =
+                getNextVisibleQuestion(null);
+
+            if (first) {
+                renderQuestion(first);
+            }
+
+            form.addEventListener("submit", () => localStorage.removeItem(draftKey));
+
+        })();
+    </script>
+}

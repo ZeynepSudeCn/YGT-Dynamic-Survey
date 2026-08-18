@@ -1,0 +1,969 @@
+@using Microsoft.AspNetCore.Identity
+@using Microsoft.EntityFrameworkCore
+@using YGT.DynamicSurvey.Models.Identity
+@using YGT.DynamicSurvey.Data
+
+@inject UserManager<ApplicationUser> UserManager
+@inject ApplicationDbContext DbContext
+
+@{
+    var currentController =
+        ViewContext.RouteData.Values["controller"]?.ToString();
+
+    var currentAction =
+        ViewContext.RouteData.Values["action"]?.ToString();
+
+
+    // =====================================================
+    // OTURUM
+    // =====================================================
+
+    var isAuthenticated =
+        User.Identity?.IsAuthenticated == true;
+
+    ApplicationUser? currentUser = null;
+
+    var fullName = "Kullanıcı";
+    var email = string.Empty;
+
+    var isAdmin = false;
+    var isSuperAdmin = false;
+    var isManagementUser = false;
+
+
+    if (isAuthenticated)
+    {
+        currentUser =
+            await UserManager.GetUserAsync(User);
+
+        if (currentUser is not null)
+        {
+            fullName =
+                string.IsNullOrWhiteSpace(currentUser.FullName)
+                    ? "Kullanıcı"
+                    : currentUser.FullName.Trim();
+
+            email =
+                currentUser.Email ?? string.Empty;
+
+            isAdmin =
+                await UserManager.IsInRoleAsync(
+                    currentUser,
+                    "Admin"
+                );
+
+            isSuperAdmin =
+                await UserManager.IsInRoleAsync(
+                    currentUser,
+                    "SuperAdmin"
+                );
+
+            isManagementUser =
+                isAdmin || isSuperAdmin;
+        }
+    }
+
+
+    // =====================================================
+    // SAYFA KONTROLLERİ
+    // =====================================================
+
+    var isLoginPage =
+        currentController == "Account" &&
+        currentAction == "Login";
+
+    var isRegisterPage =
+        currentController == "Account" &&
+        currentAction == "Register";
+
+    var isAdminLoginPage =
+        currentController == "Admin" &&
+        currentAction == "Login";
+
+
+    // NORMAL KULLANICI
+
+    var isDashboardPage =
+        currentController == "Dashboard";
+
+    var isOpenSurveysPage =
+        currentController == "Participation" &&
+        currentAction == "OpenSurveys";
+
+    var isHistoryPage =
+        currentController == "Participation" &&
+        currentAction == "History";
+
+    var isAnnouncementPage =
+        currentController == "Announcement";
+
+    var isProfilePage =
+        currentController == "Profile";
+
+
+    // ADMIN
+
+    var isAdminDashboardPage =
+        currentController == "Admin" &&
+        currentAction == "Index";
+
+    var isAdminUsersPage =
+        currentController == "Admin" &&
+        currentAction == "Users";
+
+    var isAdminSurveysPage =
+        currentController == "Admin" &&
+        currentAction == "Surveys";
+
+    var isAdminNotificationsPage =
+        currentController == "Admin" &&
+        currentAction == "Notifications";
+
+    var isAdminLogsPage =
+        currentController == "Admin" &&
+        currentAction == "Logs";
+
+    var isAdminSettingsPage =
+        currentController == "Admin" &&
+        currentAction == "Settings";
+
+    var isSuperAdminCenterPage =
+        currentController == "Admin" &&
+        currentAction == "SuperAdminCenter";
+
+
+    // =====================================================
+    // PUBLIC ANKET
+    // =====================================================
+
+    var isPublicSurveyPage =
+        currentController == "Survey" &&
+        (
+            currentAction == "Join" ||
+            currentAction == "Submit" ||
+            currentAction == "Tesekkur"
+        );
+
+
+    // =====================================================
+    // PANEL GÖRÜNÜMLERİ
+    // =====================================================
+
+    var showAdminPanel =
+        isAuthenticated &&
+        isManagementUser &&
+        !isAdminLoginPage &&
+        !isPublicSurveyPage;
+
+
+    var showUserPanel =
+        isAuthenticated &&
+        !isManagementUser &&
+        !isPublicSurveyPage;
+
+
+    // =====================================================
+    // BİLDİRİM
+    // =====================================================
+
+    var notificationCount = 0;
+    var latestNotifications = new List<YGT.DynamicSurvey.Models.UserNotification>();
+    if (currentUser is not null)
+    {
+        notificationCount = await DbContext.UserNotifications.CountAsync(x => x.UserId == currentUser.Id && !x.IsRead && x.Notification.IsActive);
+        latestNotifications = await DbContext.UserNotifications.Include(x => x.Notification)
+            .Where(x => x.UserId == currentUser.Id && x.Notification.IsActive)
+            .OrderByDescending(x => x.Notification.CreatedAt).Take(5).ToListAsync();
+    }
+
+
+    // =====================================================
+    // LOGO
+    // =====================================================
+
+    var logoController =
+        showAdminPanel
+            ? "Admin"
+            : showUserPanel
+                ? "Dashboard"
+                : "Home";
+}
+
+<!DOCTYPE html>
+
+<html lang="tr">
+
+<head>
+
+    <script>document.documentElement.dataset.theme=localStorage.getItem('ygt-theme')||'light';</script>
+
+    <meta charset="utf-8" />
+
+    <meta name="viewport"
+          content="width=device-width, initial-scale=1.0" />
+
+    <title>@ViewData["Title"] - YGT ANKET</title>
+
+
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+
+    <link rel="stylesheet"
+          href="~/lib/bootstrap/dist/css/bootstrap.min.css" />
+
+    <link rel="stylesheet"
+          href="~/css/site.css?v=@DateTime.Now.Ticks"
+          asp-append-version="true" />
+
+    <link rel="stylesheet"
+          href="~/YGT.DynamicSurvey.styles.css"
+          asp-append-version="true" />
+
+
+    <style>
+        .dashboard-social-divider {
+            height: 1px;
+            margin: 14px 10px 12px;
+            background: #e4e7ec;
+        }
+
+        .dashboard-social-title {
+            margin: 0 12px 7px;
+            color: #98a2b3;
+            font-size: .68rem;
+            font-weight: 800;
+            letter-spacing: .09em;
+        }
+
+        .dashboard-social-link {
+            text-decoration: none;
+        }
+
+        .dashboard-social-icon {
+            min-width: 22px;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            font-size: .82rem;
+            font-weight: 900;
+        }
+
+        .dashboard-social-link:hover {
+            background: #f5f8ff;
+        }
+
+        .footer-social-links {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 12px;
+            flex-wrap: wrap;
+            margin-top: 12px;
+        }
+
+        .footer-social-label {
+            color: #667085;
+            font-size: .72rem;
+            font-weight: 800;
+            letter-spacing: .06em;
+            text-transform: uppercase;
+        }
+
+        .footer-social-links a {
+            color: #344054;
+            font-size: .78rem;
+            font-weight: 700;
+            text-decoration: none;
+        }
+
+        .footer-social-links a:hover {
+            color: #1769e0;
+        }
+    </style>
+
+</head>
+
+
+<body>
+
+
+    <!-- =====================================================
+         HEADER
+    ====================================================== -->
+
+    <header class="site-header">
+
+        <div class="container">
+
+            <nav class="mockup-navbar">
+
+                @if (!isAuthenticated)
+                {
+                    <button type="button" id="themeToggle" class="theme-toggle theme-icon-toggle" aria-label="Tema değiştir" title="Tema değiştir">☀️</button>
+                }
+
+
+                <!-- LOGO -->
+
+                <a asp-controller="@logoController"
+                   asp-action="Index"
+                   class="mockup-brand">
+
+                    <img src="~/images/ygt-logo-new.png"
+                         asp-append-version="true"
+                         alt="YGT KKU"
+                         class="ygt-header-logo" />
+
+                </a>
+
+
+                <!-- =================================================
+                     GİRİŞ YAPMIŞ KİŞİ
+                ================================================== -->
+
+                @if (isAuthenticated)
+                {
+                    <div class="top-header-actions">
+
+
+                        <!-- *=========================================*
+                             BİLDİRİM ZİLİ
+                        =*=========================================* -->
+
+                        <div class="notification-wrapper">
+
+                            <button type="button"
+                                    class="notification-button"
+                                    id="notificationButton"
+                                    aria-label="Bildirimler">
+
+                                <svg xmlns="http://www\.w3.org/2000/svg"
+                                     width="22"
+                                     height="22"
+                                     viewBox="0 0 24 24"
+                                     fill="none"
+                                     stroke="currentColor"
+                                     stroke-width="2"
+                                     stroke-linecap="round"
+                                     stroke-linejoin="round">
+
+                                    <path d="M18 8a6 6 0 0 0-12 0c0 7-3 7-3 9h18c0-2-3-2-3-9"></path>
+
+                                    <path d="M10 21h4"></path>
+
+                                </svg>
+
+
+                                @if (notificationCount > 0)
+                                {
+                                    <span class="notification-badge">
+                                        @(notificationCount > 9
+                                            ? "9+"
+                                            : notificationCount.ToString())
+                                    </span>
+                                }
+
+                            </button>
+
+
+                            <!-- AÇILIR BİLDİRİM KUTUSU -->
+
+                            <div class="notification-dropdown"
+                                 id="notificationDropdown">
+
+                                <div class="notification-dropdown-header">
+
+                                    <strong>
+                                        Bildirimler
+                                    </strong>
+
+                                </div>
+
+
+                                @if (latestNotifications.Any())
+                                {
+                                    <div class="notification-list">
+                                        @foreach (var item in latestNotifications)
+                                        {
+                                            <a asp-controller="Notifications" asp-action="Open" asp-route-id="@item.Id" class="notification-item @(item.IsRead ? "" : "unread")">
+                                                <strong>@item.Notification.Title</strong><span>@item.Notification.Message</span>
+                                            </a>
+                                        }
+                                    </div>
+                                }
+                                else { <div class="notification-empty">Henüz yeni bildirimin yok.</div> }
+
+
+                                <a asp-controller="Announcement"
+                                   asp-action="Index"
+                                   class="notification-all-link">
+
+                                    Tüm Bildirimleri Gör
+
+                                </a>
+
+                            </div>
+
+                        </div>
+
+
+                        <!-- *=========================================*
+                             KULLANICI
+                        =*=========================================* -->
+
+                        <div class="top-user-simple">
+
+                            <span class="top-user-person">
+                                👤
+                            </span>
+
+                            <span class="top-user-text">
+                                @fullName
+                            </span>
+
+                        </div>
+
+                        <button type="button" id="themeToggle" class="theme-toggle theme-icon-toggle" aria-label="Tema değiştir" title="Tema değiştir">☀️</button>
+
+
+                    </div>
+                }
+
+
+                <!-- *=================================================*
+                     GİRİŞ YAPMAMIŞ
+                =*=================================================* -->
+
+                @if (!isAuthenticated)
+                {
+                    <div class="mockup-nav-actions">
+
+                        <a asp-controller="Account"
+                           asp-action="Login"
+                           class="@(isLoginPage ? "nav-dark" : "nav-outline")">
+
+                            Giriş Yap
+
+                        </a>
+
+
+                        <a asp-controller="Account"
+                           asp-action="Register"
+                           class="@(isRegisterPage ? "nav-dark" : "nav-outline")">
+
+                            Kayıt Ol
+
+                        </a>
+
+
+                        <a asp-controller="Admin"
+                           asp-action="Login"
+                           class="nav-outline @(isAdminLoginPage ? "active" : "")">
+
+                            Yönetici Girişi
+
+                        </a>
+
+                    </div>
+                }
+
+
+            </nav>
+
+        </div>
+
+    </header>
+
+
+    <!-- *=====================================================*
+         ANA İÇERİK
+    =*=====================================================* -->
+
+    <main>
+
+
+        <!-- *=================================================*
+             ADMIN PANELİ
+        =*=================================================* -->
+
+        @if (showAdminPanel)
+        {
+            <section class="dashboard-page admin-panel-wrapper">
+
+                <div class="container">
+
+                    <div class="dashboard-layout">
+
+
+                        <!-- ADMIN SOL PANEL -->
+
+                        <aside class="dashboard-sidebar admin-sidebar">
+
+
+                            <div class="dashboard-user-block">
+
+                                <div class="dashboard-avatar">
+                                    👤
+                                </div>
+
+
+                                <div class="dashboard-user-info">
+
+                                    <strong>
+                                        @fullName
+                                    </strong>
+
+                                    <span>
+                                        @email
+                                    </span>
+
+                                    <span class="admin-account-badge @(isSuperAdmin ? "super" : "standard")">
+                                        @(isSuperAdmin ? "SUPERADMIN" : "YÖNETİCİ")
+                                    </span>
+
+                                </div>
+
+                            </div>
+
+
+                            <nav class="dashboard-menu">
+
+                                @if (isSuperAdmin)
+                                {
+                                    <a asp-controller="Admin"
+                                       asp-action="SuperAdminCenter"
+                                       class="dashboard-menu-item superadmin-menu-item @(isSuperAdminCenterPage ? "active admin-active" : "")">
+                                        <span class="dashboard-menu-icon">🛡️</span>
+                                        Yetki Merkezi
+                                    </a>
+                                }
+
+
+                                <a asp-controller="Admin"
+                                   asp-action="Index"
+                                   class="dashboard-menu-item @(isAdminDashboardPage ? "active admin-active" : "")">
+
+                                    <span class="dashboard-menu-icon">
+                                        🏠
+                                    </span>
+
+                                    Genel Bakış
+
+                                </a>
+
+
+                                <a asp-controller="Admin"
+                                   asp-action="Users"
+                                   class="dashboard-menu-item @(isAdminUsersPage ? "active admin-active" : "")">
+
+                                    <span class="dashboard-menu-icon">
+                                        👥
+                                    </span>
+
+                                    Kullanıcılar
+
+                                </a>
+
+
+                                <a asp-controller="Admin"
+                                   asp-action="Surveys"
+                                   class="dashboard-menu-item @(isAdminSurveysPage ? "active admin-active" : "")">
+
+                                    <span class="dashboard-menu-icon">
+                                        📋
+                                    </span>
+
+                                    Anketler
+
+                                </a>
+
+                                <a asp-controller="AdminEvents" asp-action="Index" class="dashboard-menu-item">
+                                    <span class="dashboard-menu-icon">📅</span> Etkinlikler
+                                </a>
+
+
+                                <a asp-controller="Admin"
+                                   asp-action="Notifications"
+                                   class="dashboard-menu-item @(isAdminNotificationsPage ? "active admin-active" : "")">
+
+                                    <span class="dashboard-menu-icon">
+                                        🔔
+                                    </span>
+
+                                    Bildirimler
+
+                                </a>
+
+
+                                <a asp-controller="Admin"
+                                   asp-action="Logs"
+                                   class="dashboard-menu-item @(isAdminLogsPage ? "active admin-active" : "")">
+
+                                    <span class="dashboard-menu-icon">
+                                        🗂️
+                                    </span>
+
+                                    Sistem Kayıtları
+
+                                </a>
+
+
+                                <a asp-controller="Admin"
+                                   asp-action="Settings"
+                                   class="dashboard-menu-item @(isAdminSettingsPage ? "active admin-active" : "")">
+
+                                    <span class="dashboard-menu-icon">
+                                        ⚙️
+                                    </span>
+
+                                    Ayarlar
+
+                                </a>
+
+
+                            </nav>
+
+
+                            <form asp-controller="Admin"
+                                  asp-action="Logout"
+                                  method="post"
+                                  class="dashboard-logout-form">
+
+                                @Html.AntiForgeryToken()
+
+                                <button type="submit"
+                                        class="dashboard-logout-button">
+
+                                    <span>
+                                        ↪
+                                    </span>
+
+                                    Çıkış Yap
+
+                                </button>
+
+                            </form>
+
+
+                        </aside>
+
+
+                        <!-- ADMIN İÇERİĞİ -->
+
+                        <div class="dashboard-content">
+
+                            @RenderBody()
+
+                        </div>
+
+
+                    </div>
+
+                </div>
+
+            </section>
+        }
+
+
+        <!-- *=================================================*
+             NORMAL KULLANICI PANELİ
+        =*=================================================* -->
+
+        @if (showUserPanel)
+        {
+            <section class="dashboard-page user-panel-wrapper">
+
+                <div class="container">
+
+                    <div class="dashboard-layout">
+
+
+                        <!-- USER SOL PANEL -->
+
+                        <aside class="dashboard-sidebar">
+
+
+                            <div class="dashboard-user-block">
+
+                                <div class="dashboard-avatar">
+                                    👤
+                                </div>
+
+
+                                <div class="dashboard-user-info">
+
+                                    <strong>
+                                        @fullName
+                                    </strong>
+
+                                    <span>
+                                        @email
+                                    </span>
+
+                                </div>
+
+                            </div>
+
+
+                            <nav class="dashboard-menu">
+
+
+                                <a asp-controller="Dashboard"
+                                   asp-action="Index"
+                                   class="dashboard-menu-item @(isDashboardPage ? "active" : "")">
+
+                                    <span class="dashboard-menu-icon">
+                                        🏠
+                                    </span>
+
+                                    Ana Sayfa
+
+                                </a>
+
+
+                                <a asp-controller="Participation"
+                                   asp-action="OpenSurveys"
+                                   class="dashboard-menu-item @(isOpenSurveysPage ? "active" : "")">
+
+                                    <span class="dashboard-menu-icon">
+                                        📋
+                                    </span>
+
+                                    Açık Anketler
+
+                                </a>
+
+
+                                <a asp-controller="Participation"
+                                   asp-action="History"
+                                   class="dashboard-menu-item @(isHistoryPage ? "active" : "")">
+
+                                    <span class="dashboard-menu-icon">
+                                        ✅
+                                    </span>
+
+                                    Katıldıklarım
+
+                                </a>
+
+
+                                <a asp-controller="Announcement"
+                                   asp-action="Index"
+                                   class="dashboard-menu-item @(isAnnouncementPage ? "active" : "")">
+
+                                    <span class="dashboard-menu-icon">
+                                        🔔
+                                    </span>
+
+                                    Duyurular
+
+                                </a>
+
+
+                                <a asp-controller="Profile"
+                                   asp-action="Index"
+                                   class="dashboard-menu-item @(isProfilePage ? "active" : "")">
+
+                                    <span class="dashboard-menu-icon">
+                                        👤
+                                    </span>
+
+                                    Profil
+
+                                </a>
+
+
+                                <div class="dashboard-social-divider"></div>
+
+                                <div class="dashboard-social-title">
+                                    BİZİ TAKİP ET
+                                </div>
+
+                                <a href="https://www.instagram.com/ygtkku/"
+                                   target="_blank"
+                                   rel="noopener noreferrer"
+                                   class="dashboard-menu-item dashboard-social-link">
+
+                                    <span class="dashboard-menu-icon dashboard-social-icon">
+                                        ◎
+                                    </span>
+
+                                    Instagram
+
+                                </a>
+
+                                <a href="https://www.linkedin.com/company/yaz%C4%B1l%C4%B1mgeli%C5%9Ftirmetoplulu%C4%9Fukku/?viewAsMember=true"
+                                   target="_blank"
+                                   rel="noopener noreferrer"
+                                   class="dashboard-menu-item dashboard-social-link">
+
+                                    <span class="dashboard-menu-icon dashboard-social-icon">
+                                        in
+                                    </span>
+
+                                    LinkedIn
+
+                                </a>
+
+
+                            </nav>
+
+
+                            <form asp-controller="Account"
+                                  asp-action="Logout"
+                                  method="post"
+                                  class="dashboard-logout-form">
+
+                                @Html.AntiForgeryToken()
+
+                                <button type="submit"
+                                        class="dashboard-logout-button">
+
+                                    <span>
+                                        ↪
+                                    </span>
+
+                                    Çıkış Yap
+
+                                </button>
+
+                            </form>
+
+
+                        </aside>
+
+
+                        <!-- USER İÇERİĞİ -->
+
+                        <div class="dashboard-content">
+
+                            @RenderBody()
+
+                        </div>
+
+
+                    </div>
+
+                </div>
+
+            </section>
+        }
+
+
+        <!-- *=================================================*
+             PUBLIC SAYFALAR
+        =*=================================================* -->
+
+        @if (!showAdminPanel && !showUserPanel)
+        {
+            @RenderBody()
+        }
+
+
+    </main>
+
+
+    <!-- *=====================================================*
+         FOOTER
+    =*=====================================================* -->
+
+    <footer class="footer-section">
+
+        <div class="container">
+
+            <div class="mockup-footer">
+
+                <div class="footer-links">
+
+
+                    <a asp-controller="Legal"
+                       asp-action="About">
+                        YGT KKU Hakkında
+                    </a>
+
+
+                    <a asp-controller="Announcement"
+                       asp-action="Index">
+                        Etkinliklerimiz
+                    </a>
+
+
+                    <a asp-controller="Participation"
+                       asp-action="OpenSurveys">
+                        Topluluk Anketleri
+                    </a>
+
+
+                    <a asp-controller="Announcement"
+                       asp-action="Index">
+                        Duyurular
+                    </a>
+
+
+                    <a asp-controller="Legal"
+                       asp-action="Contact">
+                        Bize Ulaşın
+                    </a>
+
+
+                </div>
+
+
+                <div class="footer-social-links">
+
+                    <span class="footer-social-label">
+                        YGT KKU'yu Takip Et
+                    </span>
+
+                    <a href="https://www.instagram.com/ygtkku/"
+                       target="_blank"
+                       rel="noopener noreferrer">
+                        Instagram
+                    </a>
+
+                    <a href="https://www.linkedin.com/company/yaz%C4%B1l%C4%B1mgeli%C5%9Ftirmetoplulu%C4%9Fukku/?viewAsMember=true"
+                       target="_blank"
+                       rel="noopener noreferrer">
+                        LinkedIn
+                    </a>
+
+                </div>
+
+
+                <p>
+                    © 2026 Kırıkkale Üniversitesi
+                    Yazılım Geliştirme Topluluğu
+                </p>
+
+            </div>
+
+        </div>
+
+    </footer>
+
+    <button type="button" id="backToTop" class="back-to-top" aria-label="Sayfanın başına dön" title="Yukarı çık">↑</button>
+
+
+    <!-- *=====================================================*
+         JAVASCRIPT
+    =*=====================================================* -->
+
+    <script src="~/lib/jquery/dist/jquery.min.js"></script>
+
+    <script src="~/lib/bootstrap/dist/js/bootstrap.bundle.min.js"></script>
+
+    <script src="~/js/site.js"
+            asp-append-version="true">
+    </script>
+
+
+    @await RenderSectionAsync(
+        "Scripts",
+        required: false
+    )
+
+
+</body>
+
+</html>

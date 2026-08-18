@@ -1,0 +1,76 @@
+@model List<YGT.DynamicSurvey.Models.Survey>
+
+@{
+    ViewData["Title"] = "Açık Anketler";
+}
+
+<div class="results-page">
+    <div class="results-header">
+        <span class="dashboard-eyebrow">Katılıma Açık</span>
+        <h1>Açık Anketler</h1>
+        <p>Şu anda katılabileceğin YGT KKU anketleri.</p>
+    </div>
+
+    @if (Model.Count == 0)
+    {
+        <div class="dashboard-section">
+            <div class="dashboard-empty">
+                <div class="dashboard-empty-icon">📭</div>
+                <h3>Şu anda katılabileceğin yeni bir anket yok.</h3>
+                <p>Yeni bir anket yayınlandığında burada görünecek.</p>
+            </div>
+        </div>
+    }
+    else
+    {
+        <div class="open-survey-grid">
+            @foreach (var survey in Model)
+            {
+                var remaining = survey.EndDate - DateTime.Now;
+
+                <article class="open-survey-card">
+                    <div class="open-survey-card-top">
+                        <div class="open-survey-card-icon">📋</div>
+                        <span class="open-survey-status">● Yayında</span>
+                    </div>
+
+                    <h3>@survey.Title</h3>
+
+                    @if (!string.IsNullOrWhiteSpace(survey.Description))
+                    {
+                        <p class="open-survey-description">@survey.Description</p>
+                    }
+
+                    <div class="open-survey-info">
+                        <div>
+                            <span>Anket Kodu</span>
+                            <strong>@survey.Code</strong>
+                        </div>
+                        <div>
+                            <span>Son Katılım</span>
+                            <strong>@survey.EndDate.ToString("dd.MM.yyyy HH:mm")</strong>
+                        </div>
+                    </div>
+
+                    <div class="open-survey-remaining">
+                        @if (remaining.TotalDays >= 1)
+                        {
+                            <span>⏳ Yaklaşık @Math.Ceiling(remaining.TotalDays) gün kaldı</span>
+                        }
+                        else
+                        {
+                            <span>⏳ Son saatler</span>
+                        }
+                    </div>
+
+                    <a asp-controller="Survey"
+                       asp-action="Join"
+                       asp-route-code="@survey.Code"
+                       class="open-survey-button">
+                        Ankete Katıl →
+                    </a>
+                </article>
+            }
+        </div>
+    }
+</div>

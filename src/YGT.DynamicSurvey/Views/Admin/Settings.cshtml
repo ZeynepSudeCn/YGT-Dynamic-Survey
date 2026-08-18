@@ -1,0 +1,69 @@
+@{
+    ViewData["Title"] = "Ayarlar";
+}
+
+<div class="admin-simple-page">
+
+    <div class="admin-page-heading">
+        <span class="dashboard-eyebrow">YÖNETİM AYARLARI</span>
+        <h1>Ayarlar</h1>
+        <p>Yönetim paneli ve hesap işlemleriyle ilgili temel alanlara buradan ulaş.</p>
+    </div>
+
+    <div class="admin-settings-grid">
+
+        <section class="admin-settings-card">
+            <div class="admin-settings-icon">🔐</div>
+            <div>
+                <h2>Hesap ve Güvenlik</h2>
+                <p>Profil bilgilerini ve şifreni profil ekranından yönet.</p>
+                <a asp-controller="Profile"
+                   asp-action="Index"
+                   class="admin-modern-secondary">
+                    Profil Ayarlarına Git
+                </a>
+            </div>
+        </section>
+
+        <section class="admin-settings-card">
+            <div class="admin-settings-icon">📋</div>
+            <div>
+                <h2>Anket Yönetimi</h2>
+                <p>Anket oluşturma, yayın durumu ve sonuç işlemlerini yönet.</p>
+                <a asp-controller="Survey"
+                   asp-action="Index"
+                   class="admin-modern-secondary">
+                    Anketlerime Git
+                </a>
+            </div>
+        </section>
+
+        <section class="admin-settings-card">
+            <div class="admin-settings-icon">👥</div>
+            <div>
+                <h2>Kullanıcı Yönetimi</h2>
+                <p>Kullanıcı hesaplarını ve yönetici başvurularını görüntüle.</p>
+                <a asp-controller="Admin"
+                   asp-action="Users"
+                   class="admin-modern-secondary">
+                    Kullanıcıları Yönet
+                </a>
+            </div>
+        </section>
+
+        <section class="admin-settings-card">
+            <div class="admin-settings-icon">🗂</div>
+            <div>
+                <h2>Sistem Geçmişi</h2>
+                <p>Kullanıcı, anket ve yönetici işlemlerinin geçmişini incele.</p>
+                <a asp-controller="Admin"
+                   asp-action="Logs"
+                   class="admin-modern-secondary">
+                    Sistem Kayıtlarını Aç
+                </a>
+            </div>
+        </section>
+
+    </div>
+
+</div>

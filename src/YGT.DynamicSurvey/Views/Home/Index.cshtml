@@ -1,0 +1,615 @@
+@{
+    ViewData["Title"] = "Ana Sayfa";
+}
+
+<style>
+    /* QR butonunun kesin olarak ortada durması için sayfaya özel küçük düzeltme */
+    .mockup-qr-center {
+        width: 100%;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+    }
+
+    .mockup-qr-center .mockup-qr-button,
+    .mockup-qr-center .qr-scan-trigger {
+        margin: 0 auto !important;
+        display: inline-flex !important;
+        align-items: center;
+        justify-content: center;
+        gap: 8px;
+        text-align: center;
+    }
+
+    .mockup-qr-center button {
+        width: auto;
+    }
+
+    .mockup-qr-center svg {
+        width: 18px;
+        height: 18px;
+        flex: 0 0 18px;
+    }
+
+    body.qr-scanner-open {
+        overflow: hidden;
+    }
+
+    .qr-scanner-modal {
+        position: fixed;
+        inset: 0;
+        z-index: 10000;
+        display: none;
+        align-items: center;
+        justify-content: center;
+        padding: 20px;
+        background: rgba(16, 24, 40, .68);
+        backdrop-filter: blur(5px);
+    }
+
+    .qr-scanner-modal.is-open {
+        display: flex;
+    }
+
+    .qr-scanner-dialog {
+        width: min(100%, 560px);
+        overflow: hidden;
+        border-radius: 20px;
+        background: #fff;
+        box-shadow: 0 24px 80px rgba(0, 0, 0, .22);
+    }
+
+    .qr-scanner-header {
+        display: flex;
+        align-items: flex-start;
+        justify-content: space-between;
+        gap: 14px;
+        padding: 20px 22px 16px;
+        border-bottom: 1px solid #eaecf0;
+    }
+
+    .qr-scanner-header h2 {
+        margin: 0 0 4px;
+        color: #101828;
+        font-size: 1.15rem;
+    }
+
+    .qr-scanner-header p {
+        margin: 0;
+        color: #667085;
+        font-size: .78rem;
+        line-height: 1.5;
+    }
+
+    .qr-scanner-close {
+        width: 38px;
+        height: 38px;
+        display: grid;
+        place-items: center;
+        flex: 0 0 38px;
+        border: 1px solid #e4e7ec;
+        border-radius: 9px;
+        background: #fff;
+        color: #475467;
+        font-size: 1.25rem;
+        cursor: pointer;
+    }
+
+    .qr-scanner-body {
+        padding: 20px 22px 22px;
+    }
+
+    .qr-camera-frame {
+        position: relative;
+        overflow: hidden;
+        aspect-ratio: 4 / 3;
+        border-radius: 15px;
+        background: #101828;
+    }
+
+    .qr-camera-frame video {
+        width: 100%;
+        height: 100%;
+        display: block;
+        object-fit: cover;
+    }
+
+    .qr-scanner-canvas {
+        display: none;
+    }
+
+    .qr-focus-box {
+        position: absolute;
+        top: 50%;
+        left: 50%;
+        width: min(66%, 270px);
+        aspect-ratio: 1;
+        transform: translate(-50%, -50%);
+        border: 2px solid rgba(255, 255, 255, .94);
+        border-radius: 18px;
+        box-shadow: 0 0 0 999px rgba(16, 24, 40, .26);
+        pointer-events: none;
+    }
+
+    .qr-scanner-status {
+        margin: 14px 0 0;
+        padding: 10px 12px;
+        border-radius: 9px;
+        background: #f2f4f7;
+        color: #475467;
+        font-size: .78rem;
+        line-height: 1.5;
+    }
+
+    .qr-scanner-status[data-type="success"] {
+        background: #ecfdf3;
+        color: #067647;
+    }
+
+    .qr-scanner-status[data-type="error"] {
+        background: #fff6ed;
+        color: #b54708;
+    }
+
+    .qr-scanner-actions {
+        display: flex;
+        justify-content: flex-end;
+        margin-top: 14px;
+    }
+
+    .qr-scanner-stop {
+        min-height: 40px;
+        padding: 0 14px;
+        border: 1px solid #d0d5dd;
+        border-radius: 8px;
+        background: #fff;
+        color: #344054;
+        font-weight: 700;
+        cursor: pointer;
+    }
+
+    @@media (max-width: 600px) {
+        .qr-scanner-modal {
+            padding: 10px;
+        }
+
+        .qr-scanner-dialog {
+            border-radius: 16px;
+        }
+
+        .qr-scanner-header,
+        .qr-scanner-body {
+            padding-left: 16px;
+            padding-right: 16px;
+        }
+    }
+</style>
+
+<section class="mockup-home"
+         aria-labelledby="homeTitle">
+
+    <div class="hero-code-visual" aria-hidden="true">
+        <div class="code-window">
+            <div class="code-window-bar"><span></span><span></span><span></span><small>survey.ts</small></div>
+            <div class="code-window-body">
+                <div><i>01</i><code><b>const</b> survey = <em>await</em> createSurvey({</code></div>
+                <div><i>02</i><code>&nbsp;&nbsp;community: <strong>"YGT KKU"</strong>,</code></div>
+                <div><i>03</i><code>&nbsp;&nbsp;anonymous: <mark>true</mark>,</code></div>
+                <div><i>04</i><code>&nbsp;&nbsp;liveResults: <mark>true</mark></code></div>
+                <div><i>05</i><code>});</code></div>
+                <div><i>06</i><code><em>publish</em>(survey);</code></div>
+            </div>
+            <div class="code-terminal"><span>●</span> Sistem hazır <b>localhost:5037</b></div>
+        </div>
+        <span class="code-chip chip-code">&lt;/&gt;</span>
+        <span class="code-chip chip-api">API</span>
+        <span class="code-chip chip-braces">{ }</span>
+    </div>
+
+    <div class="ygt-code-atmosphere" aria-hidden="true">
+        <code class="code-fragment fragment-community"><b>const</b> community = <strong>"YGT KKU"</strong>;</code>
+        <code class="code-fragment fragment-event"><em>await</em> event.publish(<strong>"Yeni Fikirler"</strong>);</code>
+        <code class="code-fragment fragment-team">team.<em>build</em>({ passion: <mark>true</mark> });</code>
+        <code class="code-fragment fragment-feedback">feedback.<em>listen</em>(community);</code>
+        <code class="code-fragment fragment-notify">notify(<strong>"Topluluk buluşuyor"</strong>);</code>
+        <code class="code-fragment fragment-survey">survey.anonymous = <mark>true</mark>;</code>
+        <code class="code-fragment fragment-idea">ideas.<em>share</em>().<em>grow</em>();</code>
+        <code class="code-fragment fragment-terminal"><span>➜</span> ygt start --together</code>
+    </div>
+
+    <!-- Cute Stylized Swimming Vector Octopus (8 Independently Moving Tentacles, Head Squash & Stretch, 5s Propulsion Loop) -->
+    <div class="octopus-swimming-container" aria-hidden="true">
+
+        <div class="cute-octopus-swimmer-wrapper">
+            <svg class="cute-octopus-svg" viewBox="0 0 400 440" fill="none" xmlns="http://www.w3.org/2000/svg">
+                <defs>
+                    <linearGradient id="octopusBodyGrad" x1="200" y1="60" x2="200" y2="400" gradientUnits="userSpaceOnUse">
+                        <stop offset="0%" stop-color="#38bdf8" />
+                        <stop offset="60%" stop-color="#0284c7" />
+                        <stop offset="100%" stop-color="#0369a1" />
+                    </linearGradient>
+                    <filter id="octopusGlow" x="-20%" y="-20%" width="140%" height="140%">
+                        <feDropShadow dx="0" dy="8" stdDeviation="12" flood-color="#38bdf8" flood-opacity="0.5" />
+                    </filter>
+                </defs>
+
+                <!-- 8 Independently Animated Tentacles -->
+                <g class="tentacles-group" filter="url(#octopusGlow)">
+                    <path class="tentacle t1" d="M140 230 Q90 280 60 340 Q40 370 20 350 Q10 330 40 310 Q80 270 125 220" fill="url(#octopusBodyGrad)" />
+                    <path class="tentacle t2" d="M160 240 Q130 310 95 380 Q75 410 55 390 Q45 370 75 340 Q110 280 145 230" fill="url(#octopusBodyGrad)" />
+                    <path class="tentacle t3" d="M180 250 Q170 330 155 400 Q145 430 130 410 Q125 385 140 350 Q160 290 170 240" fill="url(#octopusBodyGrad)" />
+                    <path class="tentacle t4" d="M200 250 Q200 340 195 420 Q195 445 180 425 Q175 400 185 350 Q195 290 195 240" fill="url(#octopusBodyGrad)" />
+                    <path class="tentacle t5" d="M220 250 Q230 330 245 400 Q255 430 270 410 Q275 385 260 340 Q240 290 230 240" fill="url(#octopusBodyGrad)" />
+                    <path class="tentacle t6" d="M240 240 Q270 310 305 380 Q325 410 345 390 Q355 370 325 340 Q290 280 255 230" fill="url(#octopusBodyGrad)" />
+                    <path class="tentacle t7" d="M260 230 Q310 280 340 340 Q360 370 380 350 Q390 330 360 310 Q320 270 275 220" fill="url(#octopusBodyGrad)" />
+                    <path class="tentacle t8" d="M270 215 Q325 245 365 265 Q395 275 400 250 Q390 235 355 235 Q315 225 278 205" fill="url(#octopusBodyGrad)" />
+                </g>
+
+                <!-- Head Mantle with Gentle Squash & Stretch Animation -->
+                <g class="head-group" filter="url(#octopusGlow)">
+                    <path d="M120 160 C120 70 280 70 280 160 C280 220 260 250 200 250 C140 250 120 220 120 160 Z" fill="url(#octopusBodyGrad)" />
+                    <ellipse cx="160" cy="110" rx="20" ry="11" fill="rgba(255,255,255,0.35)" transform="rotate(-30 160 110)" />
+                    <circle cx="145" cy="125" r="5" fill="rgba(255,255,255,0.25)" />
+
+                    <!-- Cute Friendly Eyes -->
+                    <circle cx="165" cy="165" r="14" fill="#0f172a" />
+                    <circle cx="169" cy="161" r="5" fill="#ffffff" />
+                    <circle cx="162" cy="170" r="2.5" fill="#ffffff" />
+
+                    <circle cx="235" cy="165" r="14" fill="#0f172a" />
+                    <circle cx="239" cy="161" r="5" fill="#ffffff" />
+                    <circle cx="232" cy="170" r="2.5" fill="#ffffff" />
+
+                    <!-- Cheeks & Smile -->
+                    <ellipse cx="148" cy="180" rx="10" ry="6" fill="rgba(244,114,182,0.65)" />
+                    <ellipse cx="252" cy="180" rx="10" ry="6" fill="rgba(244,114,182,0.65)" />
+                    <path d="M185 182 Q200 197 215 182" stroke="#0f172a" stroke-width="4" stroke-linecap="round" fill="none" />
+                </g>
+            </svg>
+        </div>
+
+        <div class="cyber-bubbles">
+            <span class="bubble b1"></span>
+            <span class="bubble b2"></span>
+            <span class="bubble b3"></span>
+            <span class="bubble b4"></span>
+            <span class="bubble b5"></span>
+        </div>
+    </div>
+
+    <!-- Subtle animated background glow effects -->
+    <div class="hero-bg-glow hero-glow-1"></div>
+    <div class="hero-bg-glow hero-glow-2"></div>
+
+    <div class="container">
+
+        <div class="mockup-hero">
+
+            <div class="mockup-hero-badge">
+                <span class="badge-pulse"></span>
+                <span>Kırıkkale Üniversitesi Yazılım Geliştirme Topluluğu</span>
+            </div>
+
+            <h1 id="homeTitle">
+                ANKETLERE KOLAYCA KATIL,<br />
+                <span class="hero-gradient-text">FİKRİNİ PAYLAŞ</span>
+            </h1>
+
+            <p class="mockup-subtitle">
+                Anket kodunu gir veya QR kodu tara;
+                kayıt olmadan hemen cevaplamaya başla.
+            </p>
+
+            <div class="hero-benefits" aria-label="Öne çıkan özellikler">
+                <span><strong>01</strong> Hızlı katılım</span>
+                <span><strong>02</strong> Güvenli ve anonim</span>
+                <span><strong>03</strong> Anlık sonuçlar</span>
+            </div>
+
+
+            @if (TempData["SurveyError"] is string surveyError)
+            {
+                <div class="alert alert-danger mb-4"
+                     role="alert">
+                    @surveyError
+                </div>
+            }
+
+
+            <div class="mockup-survey-box">
+
+                <div class="survey-box-header">
+                    <div class="survey-box-icon">
+                        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+                            <path d="M9 11l3 3L22 4" />
+                            <path d="M21 12v7a2 2 0 01-2 2H5a2 2 0 01-2-2V5a2 2 0 012-2h11" />
+                        </svg>
+                    </div>
+                    <h2>Anonim Olarak Ankete Katıl</h2>
+                </div>
+
+
+                <form asp-controller="Survey"
+                      asp-action="Join"
+                      method="get"
+                      id="surveyJoinForm"
+                      novalidate>
+
+                    <label for="surveyCode">
+                        6 Haneli Anket Kodu
+                    </label>
+
+                    <div class="mockup-code-area">
+
+                        <div class="mockup-input-wrapper">
+                            <span class="code-hash">#</span>
+                            <input id="surveyCode"
+                                   name="code"
+                                   type="text"
+                                   maxlength="6"
+                                   minlength="6"
+                                   inputmode="numeric"
+                                   pattern="[0-9]{6}"
+                                   autocomplete="off"
+                                   aria-describedby="surveyCodeHelp surveyCodeError"
+                                   placeholder="Örn: 123456"
+                                   required />
+                        </div>
+
+                        <button type="submit" class="survey-submit-btn">
+                            <span>ANKETE KATIL</span>
+                            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                                <line x1="5" y1="12" x2="19" y2="12"></line>
+                                <polyline points="12 5 19 12 12 19"></polyline>
+                            </svg>
+                        </button>
+
+                    </div>
+
+
+                    <p id="surveyCodeHelp"
+                       class="mockup-input-help">
+                        Topluluk tarafından paylaşılan 6 haneli anket kodunu gir.
+                    </p>
+
+
+                    <p id="surveyCodeError"
+                       class="mockup-input-error"
+                       role="alert"
+                       hidden>
+                        Lütfen 6 haneli geçerli bir anket kodu gir.
+                    </p>
+
+                </form>
+
+
+                <div class="mockup-or">
+                    <span class="or-line"></span>
+                    <span class="or-text">veya</span>
+                    <span class="or-line"></span>
+                </div>
+
+
+                <!-- QR butonu -->
+                <div class="mockup-qr-center">
+
+                    <button type="button"
+                            id="openQrScannerButton"
+                            class="mockup-qr-button qr-scan-trigger">
+
+                        <svg viewBox="0 0 24 24"
+                             fill="none"
+                             stroke="currentColor"
+                             stroke-width="2"
+                             stroke-linecap="round"
+                             stroke-linejoin="round"
+                             aria-hidden="true">
+
+                            <path d="M3 9V5a2 2 0 0 1 2-2h4" />
+                            <path d="M15 3h4a2 2 0 0 1 2 2v4" />
+                            <path d="M21 15v4a2 2 0 0 1-2 2h-4" />
+                            <path d="M9 21H5a2 2 0 0 1-2-2v-4" />
+                            <rect x="8"
+                                  y="8"
+                                  width="8"
+                                  height="8"
+                                  rx="1" />
+
+                        </svg>
+
+                        <span>QR Kod Tara</span>
+
+                    </button>
+
+                </div>
+
+
+                <p class="mockup-qr-text">
+                    Kameranı açarak anketin QR kodunu tara.
+                </p>
+
+            </div>
+
+
+            @if (User.Identity?.IsAuthenticated == true)
+            {
+                <div class="mockup-member-actions">
+
+                    <a asp-controller="Survey"
+                       asp-action="Index"
+                       class="mockup-secondary-link">
+                        Anketlerimi Gör
+                    </a>
+
+                    <a asp-controller="Survey"
+                       asp-action="Create"
+                       class="mockup-primary-link">
+                        Yeni Anket Oluştur
+                    </a>
+
+                </div>
+            }
+
+        </div>
+
+    </div>
+
+</section>
+
+
+<!-- =====================================================
+     QR KAMERA MODALI
+====================================================== -->
+
+<div id="qrScannerModal"
+     class="qr-scanner-modal"
+     aria-hidden="true">
+
+    <div class="qr-scanner-dialog"
+         role="dialog"
+         aria-modal="true"
+         aria-labelledby="qrScannerTitle">
+
+        <div class="qr-scanner-header">
+
+            <div>
+                <h2 id="qrScannerTitle">
+                    QR Kod ile Ankete Katıl
+                </h2>
+
+                <p>
+                    Kamerayı QR koda doğrult.
+                    Kod algılandığında ankete otomatik yönlendirileceksin.
+                </p>
+            </div>
+
+
+            <button type="button"
+                    id="closeQrScannerButton"
+                    class="qr-scanner-close"
+                    aria-label="QR tarayıcıyı kapat">
+                ×
+            </button>
+
+        </div>
+
+
+        <div class="qr-scanner-body">
+
+            <div class="qr-camera-frame">
+
+                <video id="qrScannerVideo"
+                       autoplay
+                       muted
+                       playsinline>
+                </video>
+
+                <canvas id="qrScannerCanvas"
+                        class="qr-scanner-canvas">
+                </canvas>
+
+                <div class="qr-focus-box"></div>
+
+            </div>
+
+
+            <p id="qrScannerStatus"
+               class="qr-scanner-status"
+               data-type="info">
+                Kamera başlatılıyor...
+            </p>
+
+
+            <div class="qr-scanner-actions">
+
+                <button type="button"
+                        id="stopQrScannerButton"
+                        class="qr-scanner-stop">
+                    Kamerayı Kapat
+                </button>
+
+            </div>
+
+        </div>
+
+    </div>
+
+</div>
+
+
+@section Scripts {
+
+    <script>
+        (() => {
+
+            const form =
+                document.getElementById("surveyJoinForm");
+
+            const input =
+                document.getElementById("surveyCode");
+
+            const error =
+                document.getElementById("surveyCodeError");
+
+            if (!form || !input || !error) {
+                return;
+            }
+
+
+            input.addEventListener(
+                "input",
+                () => {
+
+                    input.value =
+                        input.value
+                            .replace(/\D/g, "")
+                            .slice(0, 6);
+
+                    if (
+                        !error.hidden &&
+                        input.value.length === 6
+                    ) {
+                        error.hidden = true;
+                        input.removeAttribute("aria-invalid");
+                    }
+                }
+            );
+
+
+            form.addEventListener(
+                "submit",
+                event => {
+
+                    const valid =
+                        /^[0-9]{6}$/.test(input.value);
+
+                    if (!valid) {
+                        event.preventDefault();
+
+                        error.hidden = false;
+
+                        input.setAttribute(
+                            "aria-invalid",
+                            "true"
+                        );
+
+                        input.focus();
+
+                        return;
+                    }
+
+                    error.hidden = true;
+                    input.removeAttribute("aria-invalid");
+                }
+            );
+
+        })();
+    </script>
+
+
+    <script src="https://cdn.jsdelivr.net/npm/jsqr@1.4.0/dist/jsQR.js"></script>
+
+    <script src="~/js/qr-scanner.js"
+            asp-append-version="true"></script>
+
+}

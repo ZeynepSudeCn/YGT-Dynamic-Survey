@@ -1,0 +1,73 @@
+@{
+    ViewData["Title"] = "İletişim";
+}
+
+<section class="legal-page py-5">
+    <div class="container">
+        <div class="legal-card mx-auto">
+            <span class="page-badge">Bize Ulaşın</span>
+
+            <h1 class="mt-3">İletişim</h1>
+
+            <p class="lead">
+                Dynamic Survey hakkındaki görüş, öneri ve sorularınızı bizimle
+                paylaşabilirsiniz.
+            </p>
+
+            <form>
+                <div class="row g-3">
+                    <div class="col-12 col-md-6">
+                        <label for="contactName" class="form-label">
+                            Ad Soyad
+                        </label>
+
+                        <input id="contactName"
+                               type="text"
+                               class="form-control"
+                               placeholder="Adınızı ve soyadınızı yazın" />
+                    </div>
+
+                    <div class="col-12 col-md-6">
+                        <label for="contactEmail" class="form-label">
+                            E-posta
+                        </label>
+
+                        <input id="contactEmail"
+                               type="email"
+                               class="form-control"
+                               placeholder="ornek@email.com" />
+                    </div>
+
+                    <div class="col-12">
+                        <label for="contactSubject" class="form-label">
+                            Konu
+                        </label>
+
+                        <input id="contactSubject"
+                               type="text"
+                               class="form-control"
+                               placeholder="Mesajınızın konusu" />
+                    </div>
+
+                    <div class="col-12">
+                        <label for="contactMessage" class="form-label">
+                            Mesaj
+                        </label>
+
+                        <textarea id="contactMessage"
+                                  class="form-control"
+                                  rows="6"
+                                  placeholder="Mesajınızı yazın"></textarea>
+                    </div>
+
+                    <div class="col-12">
+                        <button type="button"
+                                class="btn btn-primary px-4">
+                            Mesaj Gönder
+                        </button>
+                    </div>
+                </div>
+            </form>
+        </div>
+    </div>
+</section>
